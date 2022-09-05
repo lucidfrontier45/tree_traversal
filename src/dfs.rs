@@ -1,6 +1,6 @@
-use std::hash::Hash;
+use num_traits::Bounded;
 
-use pathfinding::prelude::dfs_reach;
+use crate::bbs::bbs;
 
 pub fn dfs<N, IN, FN, FC, C, FR>(
     start: N,
@@ -9,27 +9,20 @@ pub fn dfs<N, IN, FN, FC, C, FR>(
     root_check_fn: FR,
 ) -> (C, N)
 where
-    N: Eq + Hash + Clone,
+    N: Clone,
     IN: IntoIterator<Item = N>,
     FN: FnMut(&N) -> IN,
     FC: Fn(&N) -> C,
-    C: Ord + Copy,
+    C: Ord + Copy + Bounded,
     FR: Fn(&N) -> bool,
 {
-    let res = dfs_reach(start, successor_fn);
-    let (score, best_node) = res
-        .into_iter()
-        .filter_map(|n| {
-            if !root_check_fn(&n) {
-                return None;
-            } else {
-                return Some((score_fn(&n), n));
-            }
-        })
-        .min_by_key(|x| x.0)
-        .unwrap();
-
-    (score, best_node)
+    bbs(
+        start,
+        successor_fn,
+        |_| C::min_value(),
+        score_fn,
+        root_check_fn,
+    )
 }
 
 #[cfg(test)]
