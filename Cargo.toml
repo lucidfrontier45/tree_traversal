@@ -10,4 +10,3 @@ pathfinding = "3.0.13"
 
 [lib]
 name = "tree_traversal"
-path = "lib.rs"
