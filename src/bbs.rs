@@ -1,11 +1,13 @@
 use std::iter::FusedIterator;
 
+use num_traits::Bounded;
+
 /// Struct returned by [`dfs_reach`](crate::directed::dfs::dfs_reach).
 pub struct BbsReachable<N, FN, FC, C> {
     to_see: Vec<N>,
     successors: FN,
     lower_bound_fn: FC,
-    current_best_score: Option<C>,
+    current_best_score: C,
 }
 
 impl<N, FN, IN, FC, C> Iterator for BbsReachable<N, FN, FC, C>
@@ -14,15 +16,13 @@ where
     FN: FnMut(&N) -> IN,
     IN: IntoIterator<Item = N>,
     FC: Fn(&N) -> C,
-    C: Ord + Copy,
+    C: Ord + Copy + Bounded,
 {
     type Item = N;
 
     fn next(&mut self) -> Option<Self::Item> {
         if let Some(n) = self.to_see.pop() {
-            if self.current_best_score.is_none()
-                || (self.lower_bound_fn)(&n) <= self.current_best_score.unwrap()
-            {
+            if (self.lower_bound_fn)(&n) <= self.current_best_score {
                 let mut to_insert = Vec::new();
                 for s in (self.successors)(&n) {
                     to_insert.push(s.clone());
@@ -42,7 +42,7 @@ where
     FN: FnMut(&N) -> IN,
     IN: IntoIterator<Item = N>,
     FC: Fn(&N) -> C,
-    C: Ord + Copy,
+    C: Ord + Copy + Bounded,
 {
 }
 
@@ -50,22 +50,19 @@ pub fn bbs_reach<N, FN, IN, FC, C>(
     start: N,
     successors: FN,
     lower_bound_fn: FC,
-    current_best_score: Option<C>,
 ) -> BbsReachable<N, FN, FC, C>
 where
     N: Clone,
     FN: FnMut(&N) -> IN,
     IN: IntoIterator<Item = N>,
     FC: Fn(&N) -> C,
-    C: Ord + Copy,
+    C: Ord + Copy + Bounded,
 {
-    let to_see = vec![start.clone()];
-
     BbsReachable {
-        to_see,
+        to_see: vec![start],
         successors,
         lower_bound_fn,
-        current_best_score,
+        current_best_score: C::max_value(),
     }
 }
 
@@ -82,10 +79,10 @@ where
     FN: FnMut(&N) -> IN,
     FC1: Fn(&N) -> C,
     FC2: Fn(&N) -> C,
-    C: Ord + Copy,
+    C: Ord + Copy + Bounded,
     FR: Fn(&N) -> bool,
 {
-    let mut res = bbs_reach(start, successor_fn, lower_bound_fn, None);
+    let mut res = bbs_reach(start, successor_fn, lower_bound_fn);
     let mut best_root_node = None;
     loop {
         let op_n = res.next();
@@ -95,14 +92,14 @@ where
         let n = op_n.unwrap();
         if root_check_fn(&n) {
             let score = score_fn(&n);
-            if res.current_best_score.is_none() || res.current_best_score.unwrap() > score {
-                res.current_best_score = Some(score);
+            if res.current_best_score > score {
+                res.current_best_score = score;
                 best_root_node = Some(n)
             }
         }
     }
 
-    (res.current_best_score.unwrap(), best_root_node.unwrap())
+    (res.current_best_score, best_root_node.unwrap())
 }
 
 #[cfg(test)]
