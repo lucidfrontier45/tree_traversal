@@ -2,18 +2,30 @@ use std::hash::Hash;
 
 use pathfinding::prelude::bfs_reach;
 
-pub fn bfs<N, IN, FN, FC, C>(start: N, successor_fn: FN, score_fn: FC) -> (C, N)
+pub fn bfs<N, IN, FN, FC, C, FR>(
+    start: N,
+    successor_fn: FN,
+    score_fn: FC,
+    root_check_fn: FR,
+) -> (C, N)
 where
     N: Eq + Hash + Clone,
     IN: IntoIterator<Item = N>,
     FN: FnMut(&N) -> IN,
     FC: Fn(&N) -> C,
     C: Ord + Copy,
+    FR: Fn(&N) -> bool,
 {
     let res = bfs_reach(start, successor_fn);
     let (score, best_node) = res
         .into_iter()
-        .map(|n| (score_fn(&n), n))
+        .filter_map(|n| {
+            if !root_check_fn(&n) {
+                return None;
+            } else {
+                return Some((score_fn(&n), n));
+            }
+        })
         .min_by_key(|x| x.0)
         .unwrap();
 
@@ -29,9 +41,10 @@ mod test {
         let weights = [3, 4, 6, 5];
         let profits = [2, 3, 2, 4];
         let capacity = 8 as u32;
+        let total_items = weights.len();
 
         let successor_fn = |n: &Node| {
-            if n.len() == 4 {
+            if n.len() == total_items {
                 return vec![];
             }
 
@@ -65,9 +78,6 @@ mod test {
         };
 
         let score_fn = |n: &Node| {
-            if n.len() < 4 {
-                return u32::MAX;
-            }
             let score: u32 = n
                 .iter()
                 .copied()
@@ -83,7 +93,9 @@ mod test {
             u32::MAX - score
         };
 
-        let (score, best_node) = bfs(vec![], successor_fn, score_fn);
+        let root_check_fn = |n: &Node| n.len() == total_items;
+
+        let (score, best_node) = bfs(vec![], successor_fn, score_fn, root_check_fn);
         let score = u32::MAX - score;
 
         assert_eq!(score, 6);
