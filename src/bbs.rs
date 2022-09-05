@@ -1,9 +1,8 @@
-use std::{collections::HashSet, hash::Hash, iter::FusedIterator};
+use std::iter::FusedIterator;
 
 /// Struct returned by [`dfs_reach`](crate::directed::dfs::dfs_reach).
 pub struct BbsReachable<N, FN, FC, C> {
     to_see: Vec<N>,
-    seen: HashSet<N>,
     successors: FN,
     lower_bound_fn: FC,
     current_best_score: Option<C>,
@@ -11,7 +10,7 @@ pub struct BbsReachable<N, FN, FC, C> {
 
 impl<N, FN, IN, FC, C> Iterator for BbsReachable<N, FN, FC, C>
 where
-    N: Eq + Hash + Clone,
+    N: Clone,
     FN: FnMut(&N) -> IN,
     IN: IntoIterator<Item = N>,
     FC: Fn(&N) -> C,
@@ -26,10 +25,7 @@ where
             {
                 let mut to_insert = Vec::new();
                 for s in (self.successors)(&n) {
-                    if !self.seen.contains(&s) {
-                        to_insert.push(s.clone());
-                        self.seen.insert(s);
-                    }
+                    to_insert.push(s.clone());
                 }
                 self.to_see.extend(to_insert.into_iter().rev());
             }
@@ -42,7 +38,7 @@ where
 
 impl<N, FN, IN, FC, C> FusedIterator for BbsReachable<N, FN, FC, C>
 where
-    N: Eq + Hash + Clone,
+    N: Clone,
     FN: FnMut(&N) -> IN,
     IN: IntoIterator<Item = N>,
     FC: Fn(&N) -> C,
@@ -57,17 +53,16 @@ pub fn bbs_reach<N, FN, IN, FC, C>(
     current_best_score: Option<C>,
 ) -> BbsReachable<N, FN, FC, C>
 where
-    N: Eq + Hash + Clone,
+    N: Clone,
     FN: FnMut(&N) -> IN,
     IN: IntoIterator<Item = N>,
     FC: Fn(&N) -> C,
     C: Ord + Copy,
 {
-    let (to_see, mut seen) = (vec![start.clone()], HashSet::new());
-    seen.insert(start);
+    let to_see = vec![start.clone()];
+
     BbsReachable {
         to_see,
-        seen,
         successors,
         lower_bound_fn,
         current_best_score,
@@ -82,7 +77,7 @@ pub fn bbs<N, IN, FN, FC1, FC2, C, FR>(
     root_check_fn: FR,
 ) -> (C, N)
 where
-    N: Eq + Hash + Clone,
+    N: Clone,
     IN: IntoIterator<Item = N>,
     FN: FnMut(&N) -> IN,
     FC1: Fn(&N) -> C,
