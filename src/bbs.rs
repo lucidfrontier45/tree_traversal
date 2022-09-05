@@ -23,11 +23,9 @@ where
     fn next(&mut self) -> Option<Self::Item> {
         if let Some(n) = self.to_see.pop() {
             if (self.lower_bound_fn)(&n) <= self.current_best_score {
-                let mut to_insert = Vec::new();
                 for s in (self.successors)(&n) {
-                    to_insert.push(s.clone());
+                    self.to_see.push(s.clone());
                 }
-                self.to_see.extend(to_insert.into_iter().rev());
             }
             Some(n)
         } else {
