@@ -2,7 +2,6 @@ use std::iter::FusedIterator;
 
 use num_traits::Bounded;
 
-/// Struct returned by [`dfs_reach`](crate::directed::dfs::dfs_reach).
 pub struct BbsReachable<N, FN, FC, C> {
     to_see: Vec<N>,
     successors: FN,
