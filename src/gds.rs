@@ -4,12 +4,20 @@ use num_traits::Bounded;
 
 use crate::bms::bms;
 
-/// Find best leaf node by using Greedy search
+/// Findthe leaf node with the lowest cost by using Greedy Search
+///
+/// - `start` is the start node.
+/// - `successor_fn` returns a list of successors for a given node.
+/// - `eval_fn` returns the approximated cost of a given node to sort and select k-best
+/// - `cost_fn` returns the final cost of a leaf node
+/// - `leaf_check_fn` check if a node is leaf or not
+///
+/// This function returns Some of a tuple of (cost, leaf node) if found, otherwise returns None
 pub fn gds<N, IN, FN, FC1, FC2, C, FR>(
     start: N,
     successor_fn: FN,
     eval_fn: FC1,
-    score_fn: FC2,
+    cost_fn: FC2,
     leaf_check_fn: FR,
 ) -> (C, N)
 where
@@ -27,7 +35,7 @@ where
         eval_fn,
         usize::MAX,
         1,
-        score_fn,
+        cost_fn,
         leaf_check_fn,
     )
 }
@@ -162,12 +170,12 @@ mod test {
         let successor_fn = |n: &Node| n.generate_child_nodes(&time_func);
         let eval_fn = |n: &Node| n.t;
 
-        let score_fn = |n: &Node| n.t + time_func(n.city, start);
+        let cost_fn = |n: &Node| n.t + time_func(n.city, start);
         let leaf_check_fn = |n: &Node| n.is_leaf();
 
-        let (score, best_node) = gds(root_node, successor_fn, eval_fn, score_fn, leaf_check_fn);
+        let (cost, best_node) = gds(root_node, successor_fn, eval_fn, cost_fn, leaf_check_fn);
 
-        assert!(score < 9000);
+        assert!(cost < 9000);
         let mut visited_cities = best_node.parents.clone();
         visited_cities.push(best_node.city);
         visited_cities.sort();

@@ -1,9 +1,6 @@
 //! Beam Search
 
-use std::{
-    collections::{BinaryHeap, VecDeque},
-    iter::FusedIterator,
-};
+use std::collections::{BinaryHeap, VecDeque};
 
 use num_traits::Bounded;
 
@@ -31,8 +28,8 @@ impl<S: Ord, A> Ord for ScoredItem<S, A> {
 
 impl<S: Ord, A> From<(S, A)> for ScoredItem<S, A> {
     fn from(v: (S, A)) -> Self {
-        let (score, item) = v;
-        ScoredItem(score, item)
+        let (cost, item) = v;
+        ScoredItem(cost, item)
     }
 }
 
@@ -81,16 +78,6 @@ where
     }
 }
 
-impl<N, FN, IN, FC, C> FusedIterator for BmsReachable<N, FN, FC, C>
-where
-    N: Clone,
-    FN: FnMut(&N) -> IN,
-    IN: IntoIterator<Item = N>,
-    FC: Fn(&N) -> C,
-    C: Ord + Copy + Bounded,
-{
-}
-
 /// Use Beam search to efficiently traverse a tree
 pub fn bms_reach<N, FN, IN, FC, C>(
     start: N,
@@ -116,14 +103,24 @@ where
     }
 }
 
-/// Find the best leaf node by using Beam search
+/// Find the leaf node with the lowest cost by using Beam Search
+///
+/// - `start` is the start node.
+/// - `successor_fn` returns a list of successors for a given node.
+/// - `eval_fn` returns the approximated cost of a given node to sort and select k-best
+/// - `branch_factor` decides maximum number of branches from a node
+/// - `beam_width` decides muximum number of nodes at each depth.
+/// - `cost_fn` returns the final cost of a leaf node
+/// - `leaf_check_fn` check if a node is leaf or not
+///
+/// This function returns Some of a tuple of (cost, leaf node) if found, otherwise returns None
 pub fn bms<N, IN, FN, FC1, FC2, C, FR>(
     start: N,
     successor_fn: FN,
     eval_fn: FC1,
     branch_factor: usize,
     beam_width: usize,
-    score_fn: FC2,
+    cost_fn: FC2,
     leaf_check_fn: FR,
 ) -> (C, N)
 where
@@ -137,7 +134,7 @@ where
 {
     let mut res = bms_reach(start, successor_fn, eval_fn, branch_factor, beam_width);
     let mut best_root_node = None;
-    let mut current_best_score = C::max_value();
+    let mut current_best_cost = C::max_value();
     loop {
         let op_n = res.next();
         if op_n.is_none() {
@@ -145,15 +142,15 @@ where
         }
         let n = op_n.unwrap();
         if leaf_check_fn(&n) {
-            let score = score_fn(&n);
-            if current_best_score > score {
-                current_best_score = score;
+            let cost = cost_fn(&n);
+            if current_best_cost > cost {
+                current_best_cost = cost;
                 best_root_node = Some(n)
             }
         }
     }
 
-    (current_best_score, best_root_node.unwrap())
+    (current_best_cost, best_root_node.unwrap())
 }
 
 #[cfg(test)]
@@ -318,20 +315,20 @@ mod test {
 
         let branch_factor = 10;
         let beam_width = 5;
-        let score_fn = |n: &Node| n.t + time_func(n.city, start);
+        let cost_fn = |n: &Node| n.t + time_func(n.city, start);
         let leaf_check_fn = |n: &Node| n.is_leaf();
 
-        let (score, best_node) = bms(
+        let (cost, best_node) = bms(
             root_node,
             successor_fn,
             eval_fn,
             branch_factor,
             beam_width,
-            score_fn,
+            cost_fn,
             leaf_check_fn,
         );
 
-        assert!(score < 8000);
+        assert!(cost < 8000);
         let mut visited_cities = best_node.parents.clone();
         visited_cities.push(best_node.city);
         visited_cities.sort();

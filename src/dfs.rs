@@ -4,13 +4,20 @@ use num_traits::Bounded;
 
 use crate::bbs::bbs;
 
-/// Find the best leaf node by using Depth first search
+/// Find the leaf node with the lowest cost by using Depth First Search
+///
+/// - `start` is the start node.
+/// - `successor_fn` returns a list of successors for a given node.
+/// - `cost_fn` returns the final cost of a leaf node
+/// - `leaf_check_fn` check if a node is leaf or not
+///
+/// This function returns Some of a tuple of (cost, leaf node) if found, otherwise returns None
 pub fn dfs<N, IN, FN, FC, C, FR>(
     start: N,
     successor_fn: FN,
-    score_fn: FC,
+    cost_fn: FC,
     leaf_check_fn: FR,
-) -> (C, N)
+) -> Option<(C, N)>
 where
     N: Clone,
     IN: IntoIterator<Item = N>,
@@ -23,7 +30,7 @@ where
         start,
         successor_fn,
         |_| C::min_value(),
-        score_fn,
+        cost_fn,
         leaf_check_fn,
     )
 }
@@ -73,8 +80,8 @@ mod test {
             childrean
         };
 
-        let score_fn = |n: &Node| {
-            let score: u32 = n
+        let cost_fn = |n: &Node| {
+            let cost: u32 = n
                 .iter()
                 .copied()
                 .enumerate()
@@ -86,15 +93,15 @@ mod test {
                     }
                 })
                 .sum();
-            u32::MAX - score
+            u32::MAX - cost
         };
 
         let leaf_check_fn = |n: &Node| n.len() == total_items;
 
-        let (score, best_node) = dfs(vec![], successor_fn, score_fn, leaf_check_fn);
-        let score = u32::MAX - score;
+        let (cost, best_node) = dfs(vec![], successor_fn, cost_fn, leaf_check_fn).unwrap();
+        let cost = u32::MAX - cost;
 
-        assert_eq!(score, 6);
+        assert_eq!(cost, 6);
         assert_eq!(best_node, vec![true, false, false, true]);
     }
 }
