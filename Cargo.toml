@@ -1,5 +1,11 @@
 [package]
 name = "tree_traversal"
+description = "Find best leaf node in a tree"
+repository = "https://github.com/lucidfrontier45/tree_traversal"
+keywords = ["combinatorial optimization", "tree", "graph"]
+license-file = "LICENSE"
+readme = "README.md"
+categories = ["algorithms"]
 version = "0.1.0"
 edition = "2021"
 
@@ -7,7 +13,6 @@ edition = "2021"
 
 [dependencies]
 num-traits = "0.2.15"
-pathfinding = "3.0.13"
 
 [lib]
 name = "tree_traversal"

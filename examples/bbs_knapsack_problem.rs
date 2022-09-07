@@ -1,28 +1,6 @@
-# tree_traversal
-A Rust library for finding the optimal leaf node in a tree structure.
-This crate implements several tree traversal algorithms to find the best (the lowest cost) leaf node in a tree.
-
-# Algorithms
-
-- Breadth First Search
-- Depth First Search
-- Beam Search
-- Branch and Bound Search
-- Greedy Search
-
-# Using this crate
-
-```sh
-cargo add tree_traversal
-```
-
-# Example
-
-```rs
 use tree_traversal::bbs::bbs;
 
 type Node = Vec<bool>;
-
 fn main() {
     let weights = [4, 2, 6, 3, 4];
     let profits = [100, 20, 2, 5, 10];
@@ -79,8 +57,6 @@ fn main() {
         s
     };
 
-    // tree traversal assumes a minimization problem
-    // if you want to solve maximization problem, subtract your actual score from the MAX value
     let lower_bound_fn = |n: &Node| {
         let current_profit = total_profit(n);
         let max_remained_profit: u32 = profits[n.len()..].into_iter().sum();
@@ -97,8 +73,3 @@ fn main() {
 
     dbg!((best_node, cost));
 }
-```
-
-# Note
-
-The API is derived from the great [pathfinding](https://docs.rs/pathfinding/latest/pathfinding/index.html) crate.
