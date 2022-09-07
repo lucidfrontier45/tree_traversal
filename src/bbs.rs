@@ -4,7 +4,7 @@ use num_traits::Bounded;
 
 pub struct BbsReachable<N, FN, FC, C> {
     to_see: Vec<N>,
-    successors: FN,
+    successor_fn: FN,
     lower_bound_fn: FC,
     current_best_score: C,
 }
@@ -22,7 +22,7 @@ where
     fn next(&mut self) -> Option<Self::Item> {
         if let Some(n) = self.to_see.pop() {
             if (self.lower_bound_fn)(&n) <= self.current_best_score {
-                for s in (self.successors)(&n) {
+                for s in (self.successor_fn)(&n) {
                     self.to_see.push(s.clone());
                 }
             }
@@ -45,7 +45,7 @@ where
 
 pub fn bbs_reach<N, FN, IN, FC, C>(
     start: N,
-    successors: FN,
+    successor_fn: FN,
     lower_bound_fn: FC,
 ) -> BbsReachable<N, FN, FC, C>
 where
@@ -57,7 +57,7 @@ where
 {
     BbsReachable {
         to_see: vec![start],
-        successors,
+        successor_fn,
         lower_bound_fn,
         current_best_score: C::max_value(),
     }
@@ -68,7 +68,7 @@ pub fn bbs<N, IN, FN, FC1, FC2, C, FR>(
     successor_fn: FN,
     lower_bound_fn: FC1,
     score_fn: FC2,
-    root_check_fn: FR,
+    leaf_check_fn: FR,
 ) -> (C, N)
 where
     N: Clone,
@@ -87,7 +87,7 @@ where
             break;
         }
         let n = op_n.unwrap();
-        if root_check_fn(&n) {
+        if leaf_check_fn(&n) {
             let score = score_fn(&n);
             if res.current_best_score > score {
                 res.current_best_score = score;
@@ -168,14 +168,14 @@ mod test {
 
         let score_fn = |n: &Node| u32::MAX - total_profit(n);
 
-        let root_check_fn = |n: &Node| n.len() == total_items;
+        let leaf_check_fn = |n: &Node| n.len() == total_items;
 
         let (score, best_node) = bbs(
             vec![],
             successor_fn,
             lower_bound_fn,
             score_fn,
-            root_check_fn,
+            leaf_check_fn,
         );
         let score = u32::MAX - score;
 

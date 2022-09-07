@@ -6,7 +6,7 @@ pub fn dfs<N, IN, FN, FC, C, FR>(
     start: N,
     successor_fn: FN,
     score_fn: FC,
-    root_check_fn: FR,
+    leaf_check_fn: FR,
 ) -> (C, N)
 where
     N: Clone,
@@ -21,7 +21,7 @@ where
         successor_fn,
         |_| C::min_value(),
         score_fn,
-        root_check_fn,
+        leaf_check_fn,
     )
 }
 
@@ -86,9 +86,9 @@ mod test {
             u32::MAX - score
         };
 
-        let root_check_fn = |n: &Node| n.len() == total_items;
+        let leaf_check_fn = |n: &Node| n.len() == total_items;
 
-        let (score, best_node) = dfs(vec![], successor_fn, score_fn, root_check_fn);
+        let (score, best_node) = dfs(vec![], successor_fn, score_fn, leaf_check_fn);
         let score = u32::MAX - score;
 
         assert_eq!(score, 6);

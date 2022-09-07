@@ -1,35 +1,30 @@
-use std::hash::Hash;
+use num_traits::Bounded;
 
-use pathfinding::prelude::bfs_reach;
+use crate::bms::bms;
 
 pub fn bfs<N, IN, FN, FC, C, FR>(
     start: N,
     successor_fn: FN,
     score_fn: FC,
-    root_check_fn: FR,
+    leaf_check_fn: FR,
 ) -> (C, N)
 where
-    N: Eq + Hash + Clone,
+    N: Clone,
     IN: IntoIterator<Item = N>,
     FN: FnMut(&N) -> IN,
     FC: Fn(&N) -> C,
-    C: Ord + Copy,
+    C: Ord + Copy + Bounded,
     FR: Fn(&N) -> bool,
 {
-    let res = bfs_reach(start, successor_fn);
-    let (score, best_node) = res
-        .into_iter()
-        .filter_map(|n| {
-            if !root_check_fn(&n) {
-                return None;
-            } else {
-                return Some((score_fn(&n), n));
-            }
-        })
-        .min_by_key(|x| x.0)
-        .unwrap();
-
-    (score, best_node)
+    bms(
+        start,
+        successor_fn,
+        |_| C::min_value(),
+        usize::MAX,
+        usize::MAX,
+        score_fn,
+        leaf_check_fn,
+    )
 }
 
 #[cfg(test)]
@@ -93,9 +88,9 @@ mod test {
             u32::MAX - score
         };
 
-        let root_check_fn = |n: &Node| n.len() == total_items;
+        let leaf_check_fn = |n: &Node| n.len() == total_items;
 
-        let (score, best_node) = bfs(vec![], successor_fn, score_fn, root_check_fn);
+        let (score, best_node) = bfs(vec![], successor_fn, score_fn, leaf_check_fn);
         let score = u32::MAX - score;
 
         assert_eq!(score, 6);
