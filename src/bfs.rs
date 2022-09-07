@@ -1,11 +1,21 @@
+//! Breadth First Search
+
 use num_traits::Bounded;
 
 use crate::bms::bms;
 
+/// Find the leaf node with the lowest cost by using Breadth First Search
+///
+/// - `start` is the start node.
+/// - `successor_fn` returns a list of successors for a given node.
+/// - `cost_fn` returns the final cost of a leaf node
+/// - `leaf_check_fn` check if a node is leaf or not
+///
+/// This function returns Some of a tuple of (cost, leaf node) if found, otherwise returns None
 pub fn bfs<N, IN, FN, FC, C, FR>(
     start: N,
     successor_fn: FN,
-    score_fn: FC,
+    cost_fn: FC,
     leaf_check_fn: FR,
 ) -> (C, N)
 where
@@ -22,7 +32,7 @@ where
         |_| C::min_value(),
         usize::MAX,
         usize::MAX,
-        score_fn,
+        cost_fn,
         leaf_check_fn,
     )
 }
@@ -72,8 +82,8 @@ mod test {
             childrean
         };
 
-        let score_fn = |n: &Node| {
-            let score: u32 = n
+        let cost_fn = |n: &Node| {
+            let cost: u32 = n
                 .iter()
                 .copied()
                 .enumerate()
@@ -85,15 +95,15 @@ mod test {
                     }
                 })
                 .sum();
-            u32::MAX - score
+            u32::MAX - cost
         };
 
         let leaf_check_fn = |n: &Node| n.len() == total_items;
 
-        let (score, best_node) = bfs(vec![], successor_fn, score_fn, leaf_check_fn);
-        let score = u32::MAX - score;
+        let (cost, best_node) = bfs(vec![], successor_fn, cost_fn, leaf_check_fn);
+        let cost = u32::MAX - cost;
 
-        assert_eq!(score, 6);
+        assert_eq!(cost, 6);
         assert_eq!(best_node, vec![true, false, false, true]);
     }
 }
