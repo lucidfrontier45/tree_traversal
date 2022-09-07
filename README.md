@@ -12,13 +12,13 @@ This crate implements several tree traversal algorithms to find the best (the lo
 
 # Using this crate
 
-```sh
+```bash
 cargo add tree_traversal
 ```
 
 # Example
 
-```rs
+```rust
 use tree_traversal::bbs::bbs;
 
 type Node = Vec<bool>;
