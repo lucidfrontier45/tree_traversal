@@ -2,7 +2,7 @@
 name = "tree_traversal"
 description = "Find best leaf node in a tree"
 repository = "https://github.com/lucidfrontier45/tree_traversal"
-keywords = ["combinatorial optimization", "tree", "graph"]
+keywords = ["combinatorial", "optimization", "tree", "graph"]
 license-file = "LICENSE"
 readme = "README.md"
 categories = ["algorithms"]
