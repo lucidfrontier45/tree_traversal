@@ -1,7 +1,10 @@
+//! Greedy Search
+
 use num_traits::Bounded;
 
 use crate::bms::bms;
 
+/// Find best leaf node by using Greedy search
 pub fn gds<N, IN, FN, FC1, FC2, C, FR>(
     start: N,
     successor_fn: FN,

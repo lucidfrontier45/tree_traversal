@@ -1,7 +1,10 @@
+//! Breadth First Search
+
 use num_traits::Bounded;
 
 use crate::bms::bms;
 
+/// Find the best leaf node by using Breadth first search
 pub fn bfs<N, IN, FN, FC, C, FR>(
     start: N,
     successor_fn: FN,

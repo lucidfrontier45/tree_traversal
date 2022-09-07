@@ -1,7 +1,9 @@
+//! Branch and Bound Search
+
 use std::iter::FusedIterator;
 
 use num_traits::Bounded;
-
+/// Struct returned by [`bbs_reach`]
 pub struct BbsReachable<N, FN, FC, C> {
     to_see: Vec<N>,
     successor_fn: FN,
@@ -43,6 +45,7 @@ where
 {
 }
 
+/// Use Branch and Bound technique to efficiently traverse a tree
 pub fn bbs_reach<N, FN, IN, FC, C>(
     start: N,
     successor_fn: FN,
@@ -63,6 +66,7 @@ where
     }
 }
 
+/// Find the best leaf node by using Branch and Bound
 pub fn bbs<N, IN, FN, FC1, FC2, C, FR>(
     start: N,
     successor_fn: FN,

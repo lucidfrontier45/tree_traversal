@@ -1,7 +1,10 @@
+//! Depth First Search
+
 use num_traits::Bounded;
 
 use crate::bbs::bbs;
 
+/// Find the best leaf node by using Depth first search
 pub fn dfs<N, IN, FN, FC, C, FR>(
     start: N,
     successor_fn: FN,

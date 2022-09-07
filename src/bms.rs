@@ -1,3 +1,5 @@
+//! Beam Search
+
 use std::{
     collections::{BinaryHeap, VecDeque},
     iter::FusedIterator,
@@ -34,7 +36,7 @@ impl<S: Ord, A> From<(S, A)> for ScoredItem<S, A> {
     }
 }
 
-/// Struct returned by [`dfs_reach`](crate::directed::dfs::dfs_reach).
+/// Struct returned by [`bms_reach`]
 pub struct BmsReachable<N, FN, FC, C: Ord> {
     to_see: VecDeque<N>,
     successor_fn: FN,
@@ -89,6 +91,7 @@ where
 {
 }
 
+/// Use Beam search to efficiently traverse a tree
 pub fn bms_reach<N, FN, IN, FC, C>(
     start: N,
     successor_fn: FN,
@@ -113,6 +116,7 @@ where
     }
 }
 
+/// Find the best leaf node by using Beam search
 pub fn bms<N, IN, FN, FC1, FC2, C, FR>(
     start: N,
     successor_fn: FN,
