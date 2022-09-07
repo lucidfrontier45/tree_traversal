@@ -1,0 +1,19 @@
+[package]
+name = "tree_traversal"
+description = "Find best leaf node in a tree"
+repository = "https://github.com/lucidfrontier45/tree_traversal"
+keywords = ["combinatorial", "optimization", "tree", "graph"]
+license-file = "LICENSE"
+readme = "README.md"
+categories = ["algorithms"]
+version = "0.1.0"
+edition = "2021"
+authors = ["Du Shiqiao <lucidfrontier.45@gmail.com>"]
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+num-traits = "0.2.15"
+
+[lib]
+name = "tree_traversal"
