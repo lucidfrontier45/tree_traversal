@@ -17,7 +17,7 @@ pub fn bfs<N, IN, FN, FC, C, FR>(
     successor_fn: FN,
     cost_fn: FC,
     leaf_check_fn: FR,
-) -> (C, N)
+) -> Option<(C, N)>
 where
     N: Clone,
     IN: IntoIterator<Item = N>,
@@ -100,7 +100,7 @@ mod test {
 
         let leaf_check_fn = |n: &Node| n.len() == total_items;
 
-        let (cost, best_node) = bfs(vec![], successor_fn, cost_fn, leaf_check_fn);
+        let (cost, best_node) = bfs(vec![], successor_fn, cost_fn, leaf_check_fn).unwrap();
         let cost = u32::MAX - cost;
 
         assert_eq!(cost, 6);
