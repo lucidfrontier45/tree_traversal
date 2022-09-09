@@ -122,7 +122,7 @@ pub fn bms<N, IN, FN, FC1, FC2, C, FR>(
     beam_width: usize,
     cost_fn: FC2,
     leaf_check_fn: FR,
-) -> (C, N)
+) -> Option<(C, N)>
 where
     N: Clone,
     IN: IntoIterator<Item = N>,
@@ -133,7 +133,7 @@ where
     FR: Fn(&N) -> bool,
 {
     let mut res = bms_reach(start, successor_fn, eval_fn, branch_factor, beam_width);
-    let mut best_root_node = None;
+    let mut best_leaf_node = None;
     let mut current_best_cost = C::max_value();
     loop {
         let op_n = res.next();
@@ -145,12 +145,12 @@ where
             let cost = cost_fn(&n);
             if current_best_cost > cost {
                 current_best_cost = cost;
-                best_root_node = Some(n)
+                best_leaf_node = Some(n)
             }
         }
     }
 
-    (current_best_cost, best_root_node.unwrap())
+    best_leaf_node.and_then(|n| Some((current_best_cost, n)))
 }
 
 #[cfg(test)]
@@ -326,7 +326,8 @@ mod test {
             beam_width,
             cost_fn,
             leaf_check_fn,
-        );
+        )
+        .unwrap();
 
         assert!(cost < 8000);
         let mut visited_cities = best_node.parents.clone();

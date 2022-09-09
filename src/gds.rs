@@ -19,7 +19,7 @@ pub fn gds<N, IN, FN, FC1, FC2, C, FR>(
     eval_fn: FC1,
     cost_fn: FC2,
     leaf_check_fn: FR,
-) -> (C, N)
+) -> Option<(C, N)>
 where
     N: Clone,
     IN: IntoIterator<Item = N>,
@@ -173,7 +173,8 @@ mod test {
         let cost_fn = |n: &Node| n.t + time_func(n.city, start);
         let leaf_check_fn = |n: &Node| n.is_leaf();
 
-        let (cost, best_node) = gds(root_node, successor_fn, eval_fn, cost_fn, leaf_check_fn);
+        let (cost, best_node) =
+            gds(root_node, successor_fn, eval_fn, cost_fn, leaf_check_fn).unwrap();
 
         assert!(cost < 9000);
         let mut visited_cities = best_node.parents.clone();
