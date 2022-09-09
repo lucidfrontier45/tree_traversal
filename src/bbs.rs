@@ -92,7 +92,7 @@ where
     FR: Fn(&N) -> bool,
 {
     let mut res = bbs_reach(start, successor_fn, lower_bound_fn);
-    let mut best_root_node = None;
+    let mut best_leaf_node = None;
     loop {
         let op_n = res.next();
         if op_n.is_none() {
@@ -103,12 +103,12 @@ where
             let cost = cost_fn(&n);
             if res.current_best_cost > cost {
                 res.current_best_cost = cost;
-                best_root_node = Some(n)
+                best_leaf_node = Some(n)
             }
         }
     }
 
-    best_root_node.and_then(|n| Some((res.current_best_cost, n)))
+    best_leaf_node.and_then(|n| Some((res.current_best_cost, n)))
 }
 
 #[cfg(test)]
