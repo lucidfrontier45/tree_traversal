@@ -24,8 +24,8 @@ where
     N: Clone,
     IN: IntoIterator<Item = N>,
     FN: FnMut(&N) -> IN,
-    FC1: Fn(&N) -> C,
-    FC2: Fn(&N) -> C,
+    FC1: Fn(&N) -> Option<C>,
+    FC2: Fn(&N) -> Option<C>,
     C: Ord + Copy + Bounded,
     FR: Fn(&N) -> bool,
 {
@@ -168,9 +168,9 @@ mod test {
         let time_func = |p: CityId, c: CityId| distance_matrix[p][c];
 
         let successor_fn = |n: &Node| n.generate_child_nodes(&time_func);
-        let eval_fn = |n: &Node| n.t;
+        let eval_fn = |n: &Node| Some(n.t);
 
-        let cost_fn = |n: &Node| n.t + time_func(n.city, start);
+        let cost_fn = |n: &Node| Some(n.t + time_func(n.city, start));
         let leaf_check_fn = |n: &Node| n.is_leaf();
 
         let (cost, best_node) =

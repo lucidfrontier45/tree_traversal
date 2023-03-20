@@ -60,10 +60,10 @@ fn main() {
     let lower_bound_fn = |n: &Node| {
         let current_profit = total_profit(n);
         let max_remained_profit: u32 = profits[n.len()..].into_iter().sum();
-        u32::MAX - (current_profit + max_remained_profit)
+        Some(u32::MAX - (current_profit + max_remained_profit))
     };
 
-    let cost_fn = |n: &Node| u32::MAX - total_profit(n);
+    let cost_fn = |n: &Node| Some(u32::MAX - total_profit(n));
 
     let leaf_check_fn = |n: &Node| n.len() == total_items;
 

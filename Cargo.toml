@@ -6,7 +6,7 @@ keywords = ["combinatorial", "optimization", "tree", "graph"]
 license-file = "LICENSE"
 readme = "README.md"
 categories = ["algorithms"]
-version = "0.1.1"
+version = "0.2.0"
 edition = "2021"
 authors = ["Du Shiqiao <lucidfrontier.45@gmail.com>"]
 

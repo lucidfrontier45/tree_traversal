@@ -16,16 +16,19 @@ where
     N: Clone,
     FN: FnMut(&N) -> IN,
     IN: IntoIterator<Item = N>,
-    FC: Fn(&N) -> C,
+    FC: Fn(&N) -> Option<C>,
     C: Ord + Copy + Bounded,
 {
     type Item = N;
 
     fn next(&mut self) -> Option<Self::Item> {
         if let Some(n) = self.to_see.pop() {
-            if (self.lower_bound_fn)(&n) <= self.current_best_cost {
-                for s in (self.successor_fn)(&n) {
-                    self.to_see.push(s.clone());
+            // get lower bound
+            if let Some(lb) = (self.lower_bound_fn)(&n) {
+                if lb <= self.current_best_cost {
+                    for s in (self.successor_fn)(&n) {
+                        self.to_see.push(s.clone());
+                    }
                 }
             }
             Some(n)
@@ -40,7 +43,7 @@ where
     N: Clone,
     FN: FnMut(&N) -> IN,
     IN: IntoIterator<Item = N>,
-    FC: Fn(&N) -> C,
+    FC: Fn(&N) -> Option<C>,
     C: Ord + Copy + Bounded,
 {
 }
@@ -55,7 +58,7 @@ where
     N: Clone,
     FN: FnMut(&N) -> IN,
     IN: IntoIterator<Item = N>,
-    FC: Fn(&N) -> C,
+    FC: Fn(&N) -> Option<C>,
     C: Ord + Copy + Bounded,
 {
     BbsReachable {
@@ -86,8 +89,8 @@ where
     N: Clone,
     IN: IntoIterator<Item = N>,
     FN: FnMut(&N) -> IN,
-    FC1: Fn(&N) -> C,
-    FC2: Fn(&N) -> C,
+    FC1: Fn(&N) -> Option<C>,
+    FC2: Fn(&N) -> Option<C>,
     C: Ord + Copy + Bounded,
     FR: Fn(&N) -> bool,
 {
@@ -100,10 +103,11 @@ where
         }
         let n = op_n.unwrap();
         if leaf_check_fn(&n) {
-            let cost = cost_fn(&n);
-            if res.current_best_cost > cost {
-                res.current_best_cost = cost;
-                best_leaf_node = Some(n)
+            if let Some(cost) = cost_fn(&n) {
+                if res.current_best_cost > cost {
+                    res.current_best_cost = cost;
+                    best_leaf_node = Some(n)
+                }
             }
         }
     }
@@ -175,10 +179,10 @@ mod test {
         let lower_bound_fn = |n: &Node| {
             let current_profit = total_profit(n);
             let max_remained_profit: u32 = profits[n.len()..].into_iter().sum();
-            u32::MAX - (current_profit + max_remained_profit)
+            Some(u32::MAX - (current_profit + max_remained_profit))
         };
 
-        let cost_fn = |n: &Node| u32::MAX - total_profit(n);
+        let cost_fn = |n: &Node| Some(u32::MAX - total_profit(n));
 
         let leaf_check_fn = |n: &Node| n.len() == total_items;
 
