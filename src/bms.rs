@@ -48,7 +48,7 @@ where
     N: Clone,
     FN: FnMut(&N) -> IN,
     IN: IntoIterator<Item = N>,
-    FC: Fn(&N) -> C,
+    FC: Fn(&N) -> Option<C>,
     C: Ord + Copy + Bounded,
 {
     type Item = N;
@@ -64,7 +64,10 @@ where
         if let Some(node) = self.to_see.pop_front() {
             let mut successors: Vec<_> = (self.successor_fn)(&node)
                 .into_iter()
-                .map(|n| ((self.eval_fn)(&n), n))
+                .filter_map(|n| {
+                    let cost = (self.eval_fn)(&n)?;
+                    Some((cost, n))
+                })
                 .collect();
             successors.sort_unstable_by_key(|x| x.0);
             successors
@@ -90,7 +93,7 @@ where
     N: Clone,
     FN: FnMut(&N) -> IN,
     IN: IntoIterator<Item = N>,
-    FC: Fn(&N) -> C,
+    FC: Fn(&N) -> Option<C>,
     C: Ord + Copy + Bounded,
 {
     BmsReachable {
@@ -127,8 +130,8 @@ where
     N: Clone,
     IN: IntoIterator<Item = N>,
     FN: FnMut(&N) -> IN,
-    FC1: Fn(&N) -> C,
-    FC2: Fn(&N) -> C,
+    FC1: Fn(&N) -> Option<C>,
+    FC2: Fn(&N) -> Option<C>,
     C: Ord + Copy + Bounded,
     FR: Fn(&N) -> bool,
 {
@@ -142,10 +145,11 @@ where
         }
         let n = op_n.unwrap();
         if leaf_check_fn(&n) {
-            let cost = cost_fn(&n);
-            if current_best_cost > cost {
-                current_best_cost = cost;
-                best_leaf_node = Some(n)
+            if let Some(cost) = cost_fn(&n) {
+                if current_best_cost > cost {
+                    current_best_cost = cost;
+                    best_leaf_node = Some(n)
+                }
             }
         }
     }
@@ -310,12 +314,12 @@ mod test {
         let eval_fn = |n: &Node| {
             let (remained_duration, route) =
                 greedy_tsp_solver(n.city, n.children.clone(), &time_func);
-            n.t + remained_duration + time_func(*route.last().unwrap(), start)
+            Some(n.t + remained_duration + time_func(*route.last().unwrap(), start))
         };
 
         let branch_factor = 10;
         let beam_width = 5;
-        let cost_fn = |n: &Node| n.t + time_func(n.city, start);
+        let cost_fn = |n: &Node| Some(n.t + time_func(n.city, start));
         let leaf_check_fn = |n: &Node| n.is_leaf();
 
         let (cost, best_node) = bms(
