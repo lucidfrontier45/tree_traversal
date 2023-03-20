@@ -22,14 +22,14 @@ where
     N: Clone,
     IN: IntoIterator<Item = N>,
     FN: FnMut(&N) -> IN,
-    FC: Fn(&N) -> C,
+    FC: Fn(&N) -> Option<C>,
     C: Ord + Copy + Bounded,
     FR: Fn(&N) -> bool,
 {
     bbs(
         start,
         successor_fn,
-        |_| C::min_value(),
+        |_| Some(C::min_value()),
         cost_fn,
         leaf_check_fn,
     )
@@ -93,7 +93,7 @@ mod test {
                     }
                 })
                 .sum();
-            u32::MAX - cost
+            Some(u32::MAX - cost)
         };
 
         let leaf_check_fn = |n: &Node| n.len() == total_items;
