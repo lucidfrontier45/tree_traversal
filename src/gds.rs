@@ -11,6 +11,7 @@ use crate::bms::bms;
 /// - `eval_fn` returns the approximated cost of a given node to sort and select k-best
 /// - `cost_fn` returns the final cost of a leaf node
 /// - `leaf_check_fn` check if a node is leaf or not
+/// - `max_ops` is the maximum number of search operations to perform
 ///
 /// This function returns Some of a tuple of (cost, leaf node) if found, otherwise returns None
 pub fn gds<N, IN, FN, FC1, FC2, C, FR>(
@@ -19,6 +20,7 @@ pub fn gds<N, IN, FN, FC1, FC2, C, FR>(
     eval_fn: FC1,
     cost_fn: FC2,
     leaf_check_fn: FR,
+    max_ops: usize,
 ) -> Option<(C, N)>
 where
     N: Clone,
@@ -37,6 +39,7 @@ where
         1,
         cost_fn,
         leaf_check_fn,
+        max_ops,
     )
 }
 
@@ -173,8 +176,17 @@ mod test {
         let cost_fn = |n: &Node| Some(n.t + time_func(n.city, start));
         let leaf_check_fn = |n: &Node| n.is_leaf();
 
-        let (cost, best_node) =
-            gds(root_node, successor_fn, eval_fn, cost_fn, leaf_check_fn).unwrap();
+        let max_ops = usize::MAX;
+
+        let (cost, best_node) = gds(
+            root_node,
+            successor_fn,
+            eval_fn,
+            cost_fn,
+            leaf_check_fn,
+            max_ops,
+        )
+        .unwrap();
 
         assert!(cost < 9000);
         let mut visited_cities = best_node.parents.clone();

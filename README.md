@@ -22,7 +22,6 @@ cargo add tree_traversal
 use tree_traversal::bbs::bbs;
 
 type Node = Vec<bool>;
-
 fn main() {
     let weights = [4, 2, 6, 3, 4];
     let profits = [100, 20, 2, 5, 10];
@@ -79,8 +78,6 @@ fn main() {
         s
     };
 
-    // tree traversal assumes a minimization problem
-    // if you want to solve maximization problem, subtract your actual score from the MAX value
     let lower_bound_fn = |n: &Node| {
         let current_profit = total_profit(n);
         let max_remained_profit: u32 = profits[n.len()..].into_iter().sum();
@@ -90,9 +87,17 @@ fn main() {
     let cost_fn = |n: &Node| Some(u32::MAX - total_profit(n));
 
     let leaf_check_fn = |n: &Node| n.len() == total_items;
+    let max_ops = usize::MAX;
 
-    let (cost, best_node) =
-        bbs(vec![], successor_fn, lower_bound_fn, cost_fn, leaf_check_fn).unwrap();
+    let (cost, best_node) = bbs(
+        vec![],
+        successor_fn,
+        lower_bound_fn,
+        cost_fn,
+        leaf_check_fn,
+        max_ops,
+    )
+    .unwrap();
     let cost = u32::MAX - cost;
 
     dbg!((best_node, cost));
