@@ -10,6 +10,7 @@ use crate::bms::bms;
 /// - `successor_fn` returns a list of successors for a given node.
 /// - `cost_fn` returns the final cost of a leaf node
 /// - `leaf_check_fn` check if a node is leaf or not
+/// - `max_ops` is the maximum number of search operations to perform
 ///
 /// This function returns Some of a tuple of (cost, leaf node) if found, otherwise returns None
 pub fn bfs<N, IN, FN, FC, C, FR>(
@@ -17,6 +18,7 @@ pub fn bfs<N, IN, FN, FC, C, FR>(
     successor_fn: FN,
     cost_fn: FC,
     leaf_check_fn: FR,
+    max_ops: usize,
 ) -> Option<(C, N)>
 where
     N: Clone,
@@ -34,6 +36,7 @@ where
         usize::MAX,
         cost_fn,
         leaf_check_fn,
+        max_ops,
     )
 }
 
@@ -99,8 +102,9 @@ mod test {
         };
 
         let leaf_check_fn = |n: &Node| n.len() == total_items;
+        let max_ops = usize::MAX;
 
-        let (cost, best_node) = bfs(vec![], successor_fn, cost_fn, leaf_check_fn).unwrap();
+        let (cost, best_node) = bfs(vec![], successor_fn, cost_fn, leaf_check_fn, max_ops).unwrap();
         let cost = u32::MAX - cost;
 
         assert_eq!(cost, 6);

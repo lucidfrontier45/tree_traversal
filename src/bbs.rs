@@ -9,6 +9,7 @@ pub struct BbsReachable<N, FN, FC, C> {
     successor_fn: FN,
     lower_bound_fn: FC,
     current_best_cost: C,
+    remained_ops: usize,
 }
 
 impl<N, FN, IN, FC, C> Iterator for BbsReachable<N, FN, FC, C>
@@ -22,6 +23,10 @@ where
     type Item = N;
 
     fn next(&mut self) -> Option<Self::Item> {
+        if self.remained_ops == 0 {
+            return None;
+        }
+        self.remained_ops -= 1;
         if let Some(n) = self.to_see.pop() {
             // get lower bound
             if let Some(lb) = (self.lower_bound_fn)(&n) {
@@ -53,6 +58,7 @@ pub fn bbs_reach<N, FN, IN, FC, C>(
     start: N,
     successor_fn: FN,
     lower_bound_fn: FC,
+    max_ops: usize,
 ) -> BbsReachable<N, FN, FC, C>
 where
     N: Clone,
@@ -66,6 +72,7 @@ where
         successor_fn,
         lower_bound_fn,
         current_best_cost: C::max_value(),
+        remained_ops: max_ops,
     }
 }
 
@@ -76,6 +83,7 @@ where
 /// - `lower_bound_fn` returns the lower bound of a given node do decide wheather search deeper or not
 /// - `cost_fn` returns the final cost of a leaf node
 /// - `leaf_check_fn` check if a node is leaf or not
+/// - `max_ops` is the maximum number of search operations to perform
 ///
 /// This function returns Some of a tuple of (cost, leaf node) if found, otherwise returns None
 pub fn bbs<N, IN, FN, FC1, FC2, C, FR>(
@@ -84,6 +92,7 @@ pub fn bbs<N, IN, FN, FC1, FC2, C, FR>(
     lower_bound_fn: FC1,
     cost_fn: FC2,
     leaf_check_fn: FR,
+    max_ops: usize,
 ) -> Option<(C, N)>
 where
     N: Clone,
@@ -94,7 +103,7 @@ where
     C: Ord + Copy + Bounded,
     FR: Fn(&N) -> bool,
 {
-    let mut res = bbs_reach(start, successor_fn, lower_bound_fn);
+    let mut res = bbs_reach(start, successor_fn, lower_bound_fn, max_ops);
     let mut best_leaf_node = None;
     loop {
         let op_n = res.next();
@@ -186,8 +195,17 @@ mod test {
 
         let leaf_check_fn = |n: &Node| n.len() == total_items;
 
-        let (cost, best_node) =
-            bbs(vec![], successor_fn, lower_bound_fn, cost_fn, leaf_check_fn).unwrap();
+        let max_ops = usize::MAX;
+
+        let (cost, best_node) = bbs(
+            vec![],
+            successor_fn,
+            lower_bound_fn,
+            cost_fn,
+            leaf_check_fn,
+            max_ops,
+        )
+        .unwrap();
         let cost = u32::MAX - cost;
 
         assert_eq!(cost, 120);
