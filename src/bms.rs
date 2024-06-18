@@ -40,6 +40,7 @@ pub struct BmsReachable<N, FN, FC, C: Ord> {
     eval_fn: FC,
     branch_factor: usize,
     beam_width: usize,
+    remained_ops: usize,
     pool: BinaryHeap<ScoredItem<C, N>>,
 }
 
@@ -54,6 +55,10 @@ where
     type Item = N;
 
     fn next(&mut self) -> Option<Self::Item> {
+        if self.remained_ops == 0 {
+            return None;
+        }
+        self.remained_ops -= 1;
         if self.to_see.is_empty() {
             let max_iter = std::cmp::min(self.pool.len(), self.beam_width);
             for _ in 0..max_iter {
@@ -88,6 +93,7 @@ pub fn bms_reach<N, FN, IN, FC, C>(
     eval_fn: FC,
     branch_factor: usize,
     beam_width: usize,
+    max_ops: usize,
 ) -> BmsReachable<N, FN, FC, C>
 where
     N: Clone,
@@ -102,6 +108,7 @@ where
         eval_fn,
         branch_factor,
         beam_width,
+        remained_ops: max_ops,
         pool: BinaryHeap::new(),
     }
 }
@@ -125,6 +132,7 @@ pub fn bms<N, IN, FN, FC1, FC2, C, FR>(
     beam_width: usize,
     cost_fn: FC2,
     leaf_check_fn: FR,
+    max_ops: usize,
 ) -> Option<(C, N)>
 where
     N: Clone,
@@ -135,7 +143,14 @@ where
     C: Ord + Copy + Bounded,
     FR: Fn(&N) -> bool,
 {
-    let mut res = bms_reach(start, successor_fn, eval_fn, branch_factor, beam_width);
+    let mut res = bms_reach(
+        start,
+        successor_fn,
+        eval_fn,
+        branch_factor,
+        beam_width,
+        max_ops,
+    );
     let mut best_leaf_node = None;
     let mut current_best_cost = C::max_value();
     loop {
@@ -319,6 +334,7 @@ mod test {
 
         let branch_factor = 10;
         let beam_width = 5;
+        let max_ops = usize::MAX;
         let cost_fn = |n: &Node| Some(n.t + time_func(n.city, start));
         let leaf_check_fn = |n: &Node| n.is_leaf();
 
@@ -330,6 +346,7 @@ mod test {
             beam_width,
             cost_fn,
             leaf_check_fn,
+            max_ops,
         )
         .unwrap();
 

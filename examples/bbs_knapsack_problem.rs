@@ -66,9 +66,17 @@ fn main() {
     let cost_fn = |n: &Node| Some(u32::MAX - total_profit(n));
 
     let leaf_check_fn = |n: &Node| n.len() == total_items;
+    let max_ops = usize::MAX;
 
-    let (cost, best_node) =
-        bbs(vec![], successor_fn, lower_bound_fn, cost_fn, leaf_check_fn).unwrap();
+    let (cost, best_node) = bbs(
+        vec![],
+        successor_fn,
+        lower_bound_fn,
+        cost_fn,
+        leaf_check_fn,
+        max_ops,
+    )
+    .unwrap();
     let cost = u32::MAX - cost;
 
     dbg!((best_node, cost));
