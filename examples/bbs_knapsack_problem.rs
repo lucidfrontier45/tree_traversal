@@ -4,7 +4,7 @@ type Node = Vec<bool>;
 fn main() {
     let weights = [4, 2, 6, 3, 4];
     let profits = [100, 20, 2, 5, 10];
-    let capacity = 8 as u32;
+    let capacity = 8;
     let total_items = weights.len();
 
     let successor_fn = |n: &Node| {
@@ -16,13 +16,7 @@ fn main() {
             .iter()
             .copied()
             .enumerate()
-            .map(|(i, b)| {
-                if b {
-                    return weights[i];
-                } else {
-                    return 0;
-                }
-            })
+            .map(|(i, b)| if b { weights[i] } else { 0 })
             .sum();
 
         let mut childrean = vec![];
@@ -46,20 +40,14 @@ fn main() {
             .iter()
             .copied()
             .enumerate()
-            .map(|(i, b)| {
-                if b {
-                    return profits[i];
-                } else {
-                    return 0;
-                }
-            })
+            .map(|(i, b)| if b { profits[i] } else { 0 })
             .sum();
         s
     };
 
     let lower_bound_fn = |n: &Node| {
         let current_profit = total_profit(n);
-        let max_remained_profit: u32 = profits[n.len()..].into_iter().sum();
+        let max_remained_profit: u32 = profits[n.len()..].iter().sum();
         Some(u32::MAX - (current_profit + max_remained_profit))
     };
 

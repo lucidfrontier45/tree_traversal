@@ -192,7 +192,7 @@ mod test {
         let mut visited_cities = best_node.parents.clone();
         visited_cities.push(best_node.city);
         visited_cities.sort();
-        let all_cities: Vec<CityId> = (0..n_cities).into_iter().collect();
+        let all_cities: Vec<CityId> = (0..n_cities).collect();
         assert_eq!(visited_cities, all_cities);
     }
 }

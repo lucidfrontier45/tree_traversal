@@ -16,7 +16,7 @@ impl<S: Ord, A> Eq for ScoredItem<S, A> {}
 
 impl<S: Ord, A> PartialOrd for ScoredItem<S, A> {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        self.0.partial_cmp(&other.0).map(|ord| ord.reverse())
+        Some(self.cmp(other))
     }
 }
 
@@ -125,6 +125,7 @@ where
 /// - `max_ops` is the maximum number of search operations to perform
 ///
 /// This function returns Some of a tuple of (cost, leaf node) if found, otherwise returns None
+#[allow(clippy::too_many_arguments)]
 pub fn bms<N, IN, FN, FC1, FC2, C, FR>(
     start: N,
     successor_fn: FN,
@@ -170,7 +171,7 @@ where
         }
     }
 
-    best_leaf_node.and_then(|n| Some((current_best_cost, n)))
+    best_leaf_node.map(|n| (current_best_cost, n))
 }
 
 #[cfg(test)]
@@ -355,7 +356,7 @@ mod test {
         let mut visited_cities = best_node.parents.clone();
         visited_cities.push(best_node.city);
         visited_cities.sort();
-        let all_cities: Vec<CityId> = (0..n_cities).into_iter().collect();
+        let all_cities: Vec<CityId> = (0..n_cities).collect();
         assert_eq!(visited_cities, all_cities);
     }
 }

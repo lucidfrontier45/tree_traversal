@@ -46,7 +46,7 @@ mod test {
     fn test_bfs() {
         let weights = [3, 4, 6, 5];
         let profits = [2, 3, 2, 4];
-        let capacity = 8 as u32;
+        let capacity = 8;
         let total_items = weights.len();
 
         let successor_fn = |n: &Node| {
@@ -58,13 +58,7 @@ mod test {
                 .iter()
                 .copied()
                 .enumerate()
-                .map(|(i, b)| {
-                    if b {
-                        return weights[i];
-                    } else {
-                        return 0;
-                    }
-                })
+                .map(|(i, b)| if b { weights[i] } else { 0 })
                 .sum();
 
             let mut childrean = vec![];
@@ -88,13 +82,7 @@ mod test {
                 .iter()
                 .copied()
                 .enumerate()
-                .map(|(i, b)| {
-                    if b {
-                        return profits[i];
-                    } else {
-                        return 0;
-                    }
-                })
+                .map(|(i, b)| if b { profits[i] } else { 0 })
                 .sum();
             Some(u32::MAX - cost)
         };
