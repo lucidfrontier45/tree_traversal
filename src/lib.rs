@@ -3,9 +3,7 @@
 #![allow(clippy::module_name_repetitions)]
 #![doc = include_str!("../README.md")]
 
-pub mod bbs;
-pub mod bfs;
-pub mod bms;
 pub mod common;
-pub mod dfs;
-pub mod gds;
+pub mod functional;
+pub mod node;
+pub mod traversal;

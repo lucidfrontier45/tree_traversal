@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use tree_traversal::bbs::bbs;
+use tree_traversal::functional::bbs::bbs;
 
 type Node = Vec<bool>;
 fn main() {

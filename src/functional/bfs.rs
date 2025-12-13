@@ -2,7 +2,7 @@
 
 use std::time::Duration;
 
-use crate::bms::bms;
+use super::bms::bms;
 
 /// Find the leaf node with the lowest cost by using Breadth First Search
 ///
