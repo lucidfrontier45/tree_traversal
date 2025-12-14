@@ -20,16 +20,14 @@ pub trait Traversal {
     fn traverse(
         &mut self,
         max_ops: usize,
-        time_limit: Option<Duration>,
+        time_limit: Duration,
     ) -> Option<(<Self::N as TreeNode>::Cost, Self::N)> {
         let mut best_node = None;
         let start = Instant::now();
 
         for _ in 0..max_ops {
-            if let Some(limit) = time_limit {
-                if start.elapsed() >= limit {
-                    break;
-                }
+            if start.elapsed() >= time_limit {
+                break;
             }
 
             let Some(n) = self.step() else {
