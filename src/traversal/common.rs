@@ -1,4 +1,5 @@
 use crate::node::TreeNode;
+use std::time::{Duration, Instant};
 
 /// Trait defining the interface for tree traversal algorithms.
 pub trait Traversal {
@@ -14,10 +15,23 @@ pub trait Traversal {
     /// Performs a single step of the traversal algorithm, returning the next node to be processed, if any.
     fn step(&mut self) -> Option<Self::N>;
 
-    /// Traverses the tree up to a maximum number of operations, returning all processed nodes.
-    fn traverse(&mut self, max_ops: usize) -> Option<(<Self::N as TreeNode>::Cost, Self::N)> {
+    /// Traverses the tree up to a maximum number of operations or until the optional
+    /// `time_limit` has elapsed. Returns the best leaf found (cost and node), if any.
+    fn traverse(
+        &mut self,
+        max_ops: usize,
+        time_limit: Option<Duration>,
+    ) -> Option<(<Self::N as TreeNode>::Cost, Self::N)> {
         let mut best_node = None;
+        let start = Instant::now();
+
         for _ in 0..max_ops {
+            if let Some(limit) = time_limit {
+                if start.elapsed() >= limit {
+                    break;
+                }
+            }
+
             let Some(n) = self.step() else {
                 break;
             };
@@ -31,15 +45,15 @@ pub trait Traversal {
             };
 
             if let Some(current_best) = self.current_best_cost() {
-                if cost < current_best {
-                    best_node = Some(n);
-                    self.set_current_best_cost(cost);
+                if cost >= current_best {
+                    continue;
                 }
-            } else {
-                best_node = Some(n);
-                self.set_current_best_cost(cost);
             }
+
+            best_node = Some(n);
+            self.set_current_best_cost(cost);
         }
+
         best_node.map(|n| (self.current_best_cost().unwrap(), n))
     }
 }
