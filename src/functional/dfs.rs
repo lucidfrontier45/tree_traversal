@@ -2,7 +2,7 @@
 
 use std::time::Duration;
 
-use super::{bbs::bbs_reach, common::search};
+use super::{bbs::bbs_reach, common::find_best};
 
 /// Find the leaf node with the lowest cost by using Depth First Search
 ///
@@ -36,7 +36,7 @@ where
         |_| None,
         |_| Some(C::default()),
     );
-    search(&mut res, leaf_check_fn, cost_fn, max_ops, time_limit)
+    find_best(&mut res, leaf_check_fn, cost_fn, max_ops, time_limit)
 }
 
 #[cfg(test)]

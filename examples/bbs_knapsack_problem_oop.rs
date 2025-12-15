@@ -103,7 +103,7 @@ fn main() {
     };
 
     let mut traversal = BranchAndBoundTraversal::new(root_node).fuse();
-    let result = tree_traversal::traversal::traverse(
+    let result = tree_traversal::traversal::find_best(
         &mut traversal,
         10000,
         std::time::Duration::from_secs(100),

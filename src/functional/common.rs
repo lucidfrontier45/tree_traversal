@@ -1,22 +1,24 @@
 //! Common functional utilities for tree traversal algorithms.
 
-use std::{iter::FusedIterator, time::Duration};
+use std::{cmp::Reverse, collections::BinaryHeap, iter::FusedIterator, time::Duration};
+
+use crate::utils::ScoredItem;
 
 /// Generic search function over a tree represented by a fused iterator.
-pub fn search<C, N, FC, FL>(
+pub fn traverse<C, N, FC, FL>(
     tree: &mut impl FusedIterator<Item = N>,
     leaf_check_fn: FL,
     cost_fn: FC,
     max_ops: usize,
     time_limit: Duration,
-) -> Option<(C, N)>
+    queue_size: usize,
+) -> Vec<(C, N)>
 where
     C: Ord + Copy,
     FC: Fn(&N) -> Option<C>,
     FL: Fn(&N) -> bool,
 {
-    let mut current_best_node = None;
-    let mut current_best_cost = None;
+    let mut queue = BinaryHeap::new();
 
     let start = std::time::Instant::now();
     for (i, n) in tree.enumerate() {
@@ -32,15 +34,39 @@ where
             continue;
         };
 
-        if let Some(best_cost) = current_best_cost
-            && cost >= best_cost
-        {
-            continue;
-        }
-
-        current_best_node = Some(n);
-        current_best_cost = Some(cost);
+        queue.push(ScoredItem::from((Reverse(cost), n)));
     }
 
-    current_best_node.map(|n| (current_best_cost.unwrap(), n))
+    queue
+        .into_iter()
+        .take(queue_size)
+        .map(|item| {
+            let (Reverse(cost), n) = item.into_inner();
+            (cost, n)
+        })
+        .collect()
+}
+
+/// Generic search function over a tree represented by a fused iterator.
+pub fn find_best<C, N, FC, FL>(
+    tree: &mut impl FusedIterator<Item = N>,
+    leaf_check_fn: FL,
+    cost_fn: FC,
+    max_ops: usize,
+    time_limit: Duration,
+) -> Option<(C, N)>
+where
+    C: Ord + Copy,
+    FC: Fn(&N) -> Option<C>,
+    FL: Fn(&N) -> bool,
+{
+    traverse(
+        tree,
+        leaf_check_fn,
+        cost_fn,
+        max_ops,
+        time_limit,
+        1, // only need the best one
+    )
+    .pop()
 }

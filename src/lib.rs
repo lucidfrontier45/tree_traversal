@@ -6,3 +6,4 @@
 pub mod functional;
 pub mod node;
 pub mod traversal;
+pub(crate) mod utils;

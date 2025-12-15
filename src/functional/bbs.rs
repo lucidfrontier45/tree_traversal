@@ -2,7 +2,7 @@
 
 use std::{iter::FusedIterator, time::Duration};
 
-use super::common::search;
+use super::common::find_best;
 /// Struct returned by [`bbs_reach`]
 pub struct BbsReachable<C, N, FN, FL, FC, FC2> {
     to_see: Vec<N>,
@@ -115,7 +115,7 @@ where
     FC2: Fn(&N) -> Option<C>,
 {
     let mut res = bbs_reach(start, successor_fn, leaf_check_fn, cost_fn, lower_bound_fn);
-    search(&mut res, leaf_check_fn, cost_fn, max_ops, time_limit)
+    find_best(&mut res, leaf_check_fn, cost_fn, max_ops, time_limit)
 }
 
 #[cfg(test)]

@@ -1,41 +1,15 @@
 //! Beam Search
 
 use std::{
+    cmp::Reverse,
     collections::{BinaryHeap, VecDeque},
     iter::FusedIterator,
     time::Duration,
 };
 
-use super::common::search;
+use crate::utils::ScoredItem;
 
-struct ScoredItem<S: Ord, A>(S, A);
-
-impl<S: Ord, A> PartialEq for ScoredItem<S, A> {
-    fn eq(&self, other: &Self) -> bool {
-        self.0 == other.0
-    }
-}
-
-impl<S: Ord, A> Eq for ScoredItem<S, A> {}
-
-impl<S: Ord, A> PartialOrd for ScoredItem<S, A> {
-    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        Some(self.cmp(other))
-    }
-}
-
-impl<S: Ord, A> Ord for ScoredItem<S, A> {
-    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-        self.0.cmp(&other.0).reverse()
-    }
-}
-
-impl<S: Ord, A> From<(S, A)> for ScoredItem<S, A> {
-    fn from(v: (S, A)) -> Self {
-        let (cost, item) = v;
-        ScoredItem(cost, item)
-    }
-}
+use super::common::find_best;
 
 /// Struct returned by [`bms_reach`]
 pub struct BmsReachable<N, FN, FC, C: Ord> {
@@ -44,7 +18,7 @@ pub struct BmsReachable<N, FN, FC, C: Ord> {
     eval_fn: FC,
     branch_factor: usize,
     beam_width: usize,
-    pool: BinaryHeap<ScoredItem<C, N>>,
+    pool: BinaryHeap<ScoredItem<Reverse<C>, N>>,
 }
 
 impl<N, FN, IN, FC, C> Iterator for BmsReachable<N, FN, FC, C>
@@ -60,7 +34,7 @@ where
         if self.to_see.is_empty() {
             let max_iter = std::cmp::min(self.pool.len(), self.beam_width);
             for _ in 0..max_iter {
-                self.to_see.push_back(self.pool.pop().unwrap().1);
+                self.to_see.push_back(self.pool.pop().unwrap().into_item());
             }
             self.pool.clear();
         }
@@ -71,7 +45,7 @@ where
             .into_iter()
             .filter_map(|n| {
                 let cost = (self.eval_fn)(&n)?;
-                Some((cost, n))
+                Some((Reverse(cost), n))
             })
             .collect();
         successors.sort_unstable_by_key(|x| x.0);
@@ -150,7 +124,7 @@ where
     FR: Fn(&N) -> bool,
 {
     let mut res = bms_reach(start, successor_fn, eval_fn, branch_factor, beam_width);
-    search(&mut res, leaf_check_fn, cost_fn, max_ops, time_limit)
+    find_best(&mut res, leaf_check_fn, cost_fn, max_ops, time_limit)
 }
 
 #[cfg(test)]

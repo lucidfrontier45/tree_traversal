@@ -10,6 +10,6 @@ mod gds;
 pub use bbs::BranchAndBoundTraversal;
 pub use bfs::BreadthFirstTraversal;
 pub use bms::BeamTraversal;
-pub use common::{Traversal, traverse};
+pub use common::{Traversal, find_best, traverse};
 pub use dfs::DepthFirstTraversal;
 pub use gds::GreedyTraversal;
