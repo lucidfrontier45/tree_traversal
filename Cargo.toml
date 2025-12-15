@@ -6,13 +6,9 @@ keywords = ["combinatorial", "optimization", "tree", "graph"]
 license-file = "LICENSE"
 readme = "README.md"
 categories = ["algorithms"]
-version = "0.3.0"
+version = "0.4.0"
 edition = "2024"
 authors = ["Du Shiqiao <lucidfrontier.45@gmail.com>"]
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
-[dependencies]
 
 [lib]
 name = "tree_traversal"
