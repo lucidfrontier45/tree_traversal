@@ -25,7 +25,7 @@ where
 /// - `queue_size`: The maximum number of best nodes to return.
 ///
 /// # Returns
-/// A vector of tuples containing the cost and the node, sorted by cost (lowest first).
+/// A vector of tuples containing the cost and the node
 pub fn traverse<N: TreeNode>(
     traversal: &mut impl FusedIterator<Item = N>,
     max_ops: usize,

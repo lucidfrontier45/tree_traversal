@@ -19,7 +19,7 @@ use crate::utils::ScoredItem;
 /// - `queue_size`: The maximum number of best nodes to keep in the result.
 ///
 /// # Returns
-/// A vector of tuples containing the cost and the node, sorted by cost (lowest first), limited to `queue_size`.
+/// A vector of tuples containing the cost and the node, limited to `queue_size`.
 pub fn traverse<C, N, FC, FL>(
     tree: &mut impl FusedIterator<Item = N>,
     leaf_check_fn: FL,
