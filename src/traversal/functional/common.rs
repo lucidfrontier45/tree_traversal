@@ -1,6 +1,6 @@
 //! Common functional utilities for tree traversal algorithms.
 
-use std::{cmp::Reverse, collections::BinaryHeap, iter::FusedIterator, time::Duration};
+use std::{collections::BinaryHeap, iter::FusedIterator, time::Duration};
 
 use crate::utils::ScoredItem;
 
@@ -49,7 +49,7 @@ where
             continue;
         };
 
-        queue.push(ScoredItem::from((Reverse(cost), n)));
+        queue.push(ScoredItem::from((cost, n)));
         if queue.len() > queue_size {
             queue.pop();
         }
@@ -59,7 +59,7 @@ where
         .into_iter()
         .take(queue_size)
         .map(|item| {
-            let (Reverse(cost), n) = item.into_inner();
+            let (cost, n) = item.into_inner();
             (cost, n)
         })
         .collect()
