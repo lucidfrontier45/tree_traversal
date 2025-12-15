@@ -4,14 +4,15 @@ use std::time::Duration;
 
 use crate::bms::bms;
 
-/// Findthe leaf node with the lowest cost by using Greedy Search
+/// Find the leaf node with the lowest cost by using Greedy Search
 ///
 /// - `start` is the start node.
 /// - `successor_fn` returns a list of successors for a given node.
-/// - `eval_fn` returns the approximated cost of a given node to sort and select k-best
-/// - `cost_fn` returns the final cost of a leaf node
 /// - `leaf_check_fn` check if a node is leaf or not
+/// - `cost_fn` returns the final cost of a leaf node
+/// - `eval_fn` returns the approximated cost of a given node to sort and select k-best
 /// - `max_ops` is the maximum number of search operations to perform
+/// - `time_limit` is the maximum duration allowed for the search operation
 ///
 /// This function returns Some of a tuple of (cost, leaf node) if found, otherwise returns None
 pub fn gds<N, IN, FN, FC1, FC2, C, FR>(

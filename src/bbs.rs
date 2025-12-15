@@ -113,9 +113,9 @@ where
 ///
 /// - `start` is the start node.
 /// - `successor_fn` returns a list of successors for a given node.
-/// - `lower_bound_fn` returns the lower bound of a given node do decide wheather search deeper or not
-/// - `cost_fn` returns the final cost of a leaf node
 /// - `leaf_check_fn` check if a node is leaf or not
+/// - `cost_fn` returns the final cost of a leaf node
+/// - `lower_bound_fn` returns the lower bound of a given node to decide whether to search deeper or not
 /// - `max_ops` is the maximum number of search operations to perform
 /// - `time_limit` is the maximum duration allowed for the search operation
 ///

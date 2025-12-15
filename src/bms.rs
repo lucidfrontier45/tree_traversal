@@ -123,11 +123,11 @@ where
 ///
 /// - `start` is the start node.
 /// - `successor_fn` returns a list of successors for a given node.
+/// - `leaf_check_fn` checks if a node is a leaf or not
+/// - `cost_fn` returns the final cost of a leaf node
 /// - `eval_fn` returns the approximated cost of a given node to sort and select k-best
 /// - `branch_factor` decides maximum number of branches from a node
 /// - `beam_width` decides maximum number of nodes at each depth.
-/// - `cost_fn` returns the final cost of a leaf node
-/// - `leaf_check_fn` checks if a node is a leaf or not
 /// - `max_ops` sets the maximum number of search operations to perform.
 /// - `time_limit` sets the time limit for the search.
 ///

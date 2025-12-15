@@ -8,16 +8,17 @@ use crate::bms::bms;
 ///
 /// - `start` is the start node.
 /// - `successor_fn` returns a list of successors for a given node.
-/// - `cost_fn` returns the final cost of a leaf node
 /// - `leaf_check_fn` check if a node is leaf or not
+/// - `cost_fn` returns the final cost of a leaf node
 /// - `max_ops` is the maximum number of search operations to perform
+/// - `time_limit` is the maximum duration allowed for the search operation
 ///
 /// This function returns Some of a tuple of (cost, leaf node) if found, otherwise returns None
 pub fn bfs<N, IN, FN, FC, C, FR>(
     start: N,
     successor_fn: FN,
-    cost_fn: FC,
     leaf_check_fn: FR,
+    cost_fn: FC,
     max_ops: usize,
     time_limit: Duration,
 ) -> Option<(C, N)>
@@ -100,8 +101,8 @@ mod test {
         let (cost, best_node) = bfs(
             vec![],
             successor_fn,
-            cost_fn,
             leaf_check_fn,
+            cost_fn,
             max_ops,
             time_limit,
         )

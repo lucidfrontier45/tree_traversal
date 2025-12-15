@@ -8,8 +8,8 @@ use crate::{bbs::bbs_reach, common::search};
 ///
 /// - `start` is the start node.
 /// - `successor_fn` returns a list of successors for a given node.
-/// - `cost_fn` returns the final cost of a leaf node
 /// - `leaf_check_fn` check if a node is leaf or not
+/// - `cost_fn` returns the final cost of a leaf node
 /// - `max_ops` is the maximum number of search operations to perform
 /// - `time_limit` is the maximum duration allowed for the search operation
 ///
