@@ -123,7 +123,7 @@ mod test {
     }
 
     #[test]
-    fn test_bms() {
+    fn test_gds() {
         let distance_matrix = [
             [
                 0, 2451, 713, 1018, 1631, 1374, 2408, 213, 2571, 875, 1420, 2145, 1972,
