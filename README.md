@@ -19,7 +19,7 @@ cargo add tree_traversal
 # Example
 
 ```rust
-use tree_traversal::bbs::bbs;
+use tree_traversal::traversal::functional::bbs;
 
 type Node = Vec<bool>;
 let weights = [4, 2, 6, 3, 4];
@@ -45,20 +45,20 @@ let successor_fn = |n: &Node| {
         })
         .sum();
 
-    let mut childrean = vec![];
+    let mut children = vec![];
 
     let next_idx = n.len();
     if capacity >= total_weight + weights[next_idx] {
         let mut c1 = n.clone();
         c1.push(true);
-        childrean.push(c1);
+        children.push(c1);
     }
 
     let mut c2 = n.clone();
     c2.push(false);
-    childrean.push(c2);
+    children.push(c2);
 
-    childrean
+    children
 };
 
 let total_profit = |n: &Node| {

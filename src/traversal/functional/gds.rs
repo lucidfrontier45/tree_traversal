@@ -2,13 +2,13 @@
 
 use std::time::Duration;
 
-use crate::bms::bms;
+use super::bms::bms;
 
 /// Find the leaf node with the lowest cost by using Greedy Search
 ///
 /// - `start` is the start node.
 /// - `successor_fn` returns a list of successors for a given node.
-/// - `leaf_check_fn` check if a node is leaf or not
+/// - `leaf_check_fn` checks if a node is a leaf or not
 /// - `cost_fn` returns the final cost of a leaf node
 /// - `eval_fn` returns the approximated cost of a given node to sort and select k-best
 /// - `max_ops` is the maximum number of search operations to perform
@@ -123,7 +123,7 @@ mod test {
     }
 
     #[test]
-    fn test_bms() {
+    fn test_gds() {
         let distance_matrix = [
             [
                 0, 2451, 713, 1018, 1631, 1374, 2408, 213, 2571, 875, 1420, 2145, 1972,

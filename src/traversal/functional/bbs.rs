@@ -2,7 +2,7 @@
 
 use std::{iter::FusedIterator, time::Duration};
 
-use crate::common::search;
+use super::common::find_best;
 /// Struct returned by [`bbs_reach`]
 pub struct BbsReachable<C, N, FN, FL, FC, FC2> {
     to_see: Vec<N>,
@@ -11,26 +11,6 @@ pub struct BbsReachable<C, N, FN, FL, FC, FC2> {
     cost_fn: FC,
     lower_bound_fn: FC2,
     current_best_cost: Option<C>,
-}
-
-impl<C, N, FN, FL, FC, FC2> BbsReachable<C, N, FN, FL, FC, FC2> {
-    pub(crate) fn new(
-        to_see: Vec<N>,
-        successor_fn: FN,
-        leaf_check_fn: FL,
-        cost_fn: FC,
-        lower_bound_fn: FC2,
-        current_best_cost: Option<C>,
-    ) -> Self {
-        Self {
-            to_see,
-            successor_fn,
-            leaf_check_fn,
-            cost_fn,
-            lower_bound_fn,
-            current_best_cost,
-        }
-    }
 }
 
 impl<C, N, FN, FL, FC, FC2, IN> Iterator for BbsReachable<C, N, FN, FL, FC, FC2>
@@ -96,14 +76,14 @@ where
     FL: Fn(&N) -> bool,
     FC2: Fn(&N) -> Option<C>,
 {
-    BbsReachable::new(
-        vec![start],
+    BbsReachable {
+        to_see: vec![start],
         successor_fn,
         leaf_check_fn,
         cost_fn,
         lower_bound_fn,
-        None,
-    )
+        current_best_cost: None,
+    }
 }
 
 /// Find the leaf node with the lowest cost by using Branch and Bound
@@ -135,7 +115,7 @@ where
     FC2: Fn(&N) -> Option<C>,
 {
     let mut res = bbs_reach(start, successor_fn, leaf_check_fn, cost_fn, lower_bound_fn);
-    search(&mut res, leaf_check_fn, cost_fn, max_ops, time_limit)
+    find_best(&mut res, leaf_check_fn, cost_fn, max_ops, time_limit)
 }
 
 #[cfg(test)]
@@ -163,20 +143,20 @@ mod test {
                 .map(|(i, b)| if b { weights[i] } else { 0 })
                 .sum();
 
-            let mut childrean = vec![];
+            let mut children = vec![];
 
             let next_idx = n.len();
             if capacity >= total_weight + weights[next_idx] {
                 let mut c1 = n.clone();
                 c1.push(true);
-                childrean.push(c1);
+                children.push(c1);
             }
 
             let mut c2 = n.clone();
             c2.push(false);
-            childrean.push(c2);
+            children.push(c2);
 
-            childrean
+            children
         };
 
         let total_profit = |n: &Node| {
