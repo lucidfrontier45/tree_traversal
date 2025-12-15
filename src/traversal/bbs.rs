@@ -6,12 +6,14 @@ use crate::{
 };
 
 /// Branch-and-Bound traversal implementation.
-pub struct BranchAndBoundTraversal<N: TreeNode + LowerBound> {
+pub struct BranchAndBoundTraversal<N> {
     state: Box<dyn FusedIterator<Item = N>>,
 }
 
-impl<C: Copy + Ord + 'static, N: TreeNode<Cost = C> + LowerBound<Cost = C> + 'static>
-    BranchAndBoundTraversal<N>
+impl<N, C> BranchAndBoundTraversal<N>
+where
+    C: Copy + Ord + 'static,
+    N: TreeNode<Cost = C> + LowerBound<Cost = C> + 'static,
 {
     /// Creates a new BranchAndBoundTraversal starting from the given root node.
     pub fn new(root_node: N) -> Self {
@@ -28,9 +30,7 @@ impl<C: Copy + Ord + 'static, N: TreeNode<Cost = C> + LowerBound<Cost = C> + 'st
     }
 }
 
-impl<C: Copy + Ord + 'static, N: TreeNode<Cost = C> + LowerBound<Cost = C> + 'static> Iterator
-    for BranchAndBoundTraversal<N>
-{
+impl<N> Iterator for BranchAndBoundTraversal<N> {
     type Item = N;
 
     fn next(&mut self) -> Option<Self::Item> {
