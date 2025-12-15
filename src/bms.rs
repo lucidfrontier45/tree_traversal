@@ -125,9 +125,11 @@ where
 /// - `successor_fn` returns a list of successors for a given node.
 /// - `eval_fn` returns the approximated cost of a given node to sort and select k-best
 /// - `branch_factor` decides maximum number of branches from a node
-/// - `beam_width` decides muximum number of nodes at each depth.
+/// - `beam_width` decides maximum number of nodes at each depth.
 /// - `cost_fn` returns the final cost of a leaf node
-/// - `leaf_check_fn` check if a node is leaf or not
+/// - `leaf_check_fn` checks if a node is a leaf or not
+/// - `max_ops` sets the maximum number of search operations to perform.
+/// - `time_limit` sets the time limit for the search.
 ///
 /// This function returns Some of a tuple of (cost, leaf node) if found, otherwise returns None
 #[allow(clippy::too_many_arguments)]
