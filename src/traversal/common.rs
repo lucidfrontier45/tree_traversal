@@ -12,8 +12,18 @@ where
 {
 }
 
-/// Traverses the tree up to a maximum number of operations or until the optional
-/// `time_limit` has elapsed. Returns all found leaves (cost and node).
+/// Traverses the tree using the provided traversal iterator, collecting the best leaf nodes.
+///
+/// This function wraps the functional `traverse` with default leaf and cost functions based on the `TreeNode` trait.
+///
+/// # Parameters
+/// - `traversal`: A mutable reference to a traversal iterator.
+/// - `max_ops`: The maximum number of nodes to process.
+/// - `time_limit`: The maximum time allowed for the traversal.
+/// - `queue_size`: The maximum number of best nodes to return.
+///
+/// # Returns
+/// A vector of tuples containing the cost and the node, sorted by cost (lowest first).
 pub fn traverse<N: TreeNode>(
     traversal: &mut impl FusedIterator<Item = N>,
     max_ops: usize,
@@ -30,8 +40,17 @@ pub fn traverse<N: TreeNode>(
     )
 }
 
-/// Traverses the tree up to a maximum number of operations or until the optional
-/// `time_limit` has elapsed. Returns the best leaf found (cost and node), if any.
+/// Finds the best leaf node in the tree using the provided traversal iterator.
+///
+/// This function wraps `traverse` to return only the single best node.
+///
+/// # Parameters
+/// - `traversal`: A mutable reference to a traversal iterator.
+/// - `max_ops`: The maximum number of nodes to process.
+/// - `time_limit`: The maximum time allowed for the traversal.
+///
+/// # Returns
+/// The best leaf node and its cost, or `None` if no leaf is found.
 pub fn find_best<N: TreeNode>(
     traversal: &mut impl FusedIterator<Item = N>,
     max_ops: usize,

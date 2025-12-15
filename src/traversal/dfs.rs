@@ -12,7 +12,15 @@ where
     C: Default + Copy + Ord + 'static,
     N: TreeNode<Cost = C> + 'static,
 {
-    /// Creates a new DepthFirstTraversal starting from the given root node.
+    /// Creates a new `DepthFirstTraversal` instance that performs a depth-first search starting from the given root node.
+    ///
+    /// Depth-first search explores as far as possible along each branch before backtracking.
+    ///
+    /// # Parameters
+    /// - `root_node`: The starting node for the traversal.
+    ///
+    /// # Returns
+    /// A new `DepthFirstTraversal` iterator.
     pub fn new(root_node: N) -> Self {
         let state = bbs_reach(
             root_node,
