@@ -1,4 +1,4 @@
-//! traversal algorithms for tree traversal
+//! Tree traversal algorithms
 
 mod bbs;
 mod bfs;
