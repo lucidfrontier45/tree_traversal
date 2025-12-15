@@ -67,20 +67,20 @@ mod test {
                 .map(|(i, b)| if b { weights[i] } else { 0 })
                 .sum();
 
-            let mut childrean = vec![];
+            let mut children = vec![];
 
             let mut c1 = n.clone();
             c1.push(false);
-            childrean.push(c1);
+            children.push(c1);
 
             let next_idx = n.len();
             if capacity >= total_weight + weights[next_idx] {
                 let mut c2 = n.clone();
                 c2.push(true);
-                childrean.push(c2);
+                children.push(c2);
             }
 
-            childrean
+            children
         };
 
         let cost_fn = |n: &Node| {

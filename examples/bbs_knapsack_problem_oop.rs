@@ -58,13 +58,13 @@ impl TreeNode for Node {
             .map(|(i, b)| if b { self.weights[i] } else { 0 })
             .sum();
 
-        let mut childrean = vec![];
+        let mut children = vec![];
 
         let next_idx = self.items.len();
         if self.capacity >= total_weight + self.weights[next_idx] {
             let mut c1 = self.items.clone();
             c1.push(true);
-            childrean.push(Node {
+            children.push(Node {
                 items: c1,
                 capacity: self.capacity,
                 weights: self.weights.clone(),
@@ -74,14 +74,14 @@ impl TreeNode for Node {
 
         let mut c2 = self.items.clone();
         c2.push(false);
-        childrean.push(Node {
+        children.push(Node {
             items: c2,
             capacity: self.capacity,
             weights: self.weights.clone(),
             profits: self.profits.clone(),
         });
 
-        childrean
+        children
     }
 
     fn cost(&self) -> Option<Self::Cost> {
