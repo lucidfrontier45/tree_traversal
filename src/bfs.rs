@@ -1,6 +1,6 @@
 //! Breadth First Search
 
-use num_traits::Bounded;
+use std::time::Duration;
 
 use crate::bms::bms;
 
@@ -19,29 +19,33 @@ pub fn bfs<N, IN, FN, FC, C, FR>(
     cost_fn: FC,
     leaf_check_fn: FR,
     max_ops: usize,
+    time_limit: Duration,
 ) -> Option<(C, N)>
 where
     N: Clone,
     IN: IntoIterator<Item = N>,
     FN: FnMut(&N) -> IN,
     FC: Fn(&N) -> Option<C>,
-    C: Ord + Copy + Bounded,
+    C: Ord + Copy + Default,
     FR: Fn(&N) -> bool,
 {
     bms(
         start,
         successor_fn,
-        |_| Some(C::min_value()),
-        usize::MAX,
-        usize::MAX,
-        cost_fn,
         leaf_check_fn,
+        cost_fn,
+        |_| Some(C::default()),
+        usize::MAX,
+        usize::MAX,
         max_ops,
+        time_limit,
     )
 }
 
 #[cfg(test)]
 mod test {
+    use std::time::Duration;
+
     use super::bfs;
     type Node = Vec<bool>;
     #[test]
@@ -91,8 +95,17 @@ mod test {
 
         let leaf_check_fn = |n: &Node| n.len() == total_items;
         let max_ops = usize::MAX;
+        let time_limit = Duration::from_secs(10);
 
-        let (cost, best_node) = bfs(vec![], successor_fn, cost_fn, leaf_check_fn, max_ops).unwrap();
+        let (cost, best_node) = bfs(
+            vec![],
+            successor_fn,
+            cost_fn,
+            leaf_check_fn,
+            max_ops,
+            time_limit,
+        )
+        .unwrap();
         let cost = u32::MAX - cost;
 
         assert_eq!(cost, 6);

@@ -1,6 +1,6 @@
 //! Greedy Search
 
-use num_traits::Bounded;
+use std::time::Duration;
 
 use crate::bms::bms;
 
@@ -17,10 +17,11 @@ use crate::bms::bms;
 pub fn gds<N, IN, FN, FC1, FC2, C, FR>(
     start: N,
     successor_fn: FN,
-    eval_fn: FC1,
-    cost_fn: FC2,
     leaf_check_fn: FR,
+    cost_fn: FC2,
+    eval_fn: FC1,
     max_ops: usize,
+    time_limit: Duration,
 ) -> Option<(C, N)>
 where
     N: Clone,
@@ -28,18 +29,19 @@ where
     FN: FnMut(&N) -> IN,
     FC1: Fn(&N) -> Option<C>,
     FC2: Fn(&N) -> Option<C>,
-    C: Ord + Copy + Bounded,
+    C: Ord + Copy,
     FR: Fn(&N) -> bool,
 {
     bms(
         start,
         successor_fn,
+        leaf_check_fn,
+        cost_fn,
         eval_fn,
         usize::MAX,
         1,
-        cost_fn,
-        leaf_check_fn,
         max_ops,
+        time_limit,
     )
 }
 
@@ -177,14 +179,16 @@ mod test {
         let leaf_check_fn = |n: &Node| n.is_leaf();
 
         let max_ops = usize::MAX;
+        let time_limit = std::time::Duration::from_secs(10);
 
         let (cost, best_node) = gds(
             root_node,
             successor_fn,
-            eval_fn,
-            cost_fn,
             leaf_check_fn,
+            cost_fn,
+            eval_fn,
             max_ops,
+            time_limit,
         )
         .unwrap();
 
