@@ -1,0 +1,19 @@
+{
+    "[rust]": {
+        "editor.formatOnSave": true,
+        "editor.formatOnSaveMode": "file"
+    },
+    "rust-analyzer.check.command": "clippy",
+    "rust-analyzer.imports.prefix": "plain",
+    "rust-analyzer.imports.granularity.enforce": true,
+    "rust-analyzer.imports.granularity.group": "crate",
+    "rust-analyzer.imports.group.enable": true,
+    "rust-analyzer.cargo.extraEnv": {
+        "RUSTC_BOOTSTRAP": "1"
+    },
+    "rust-analyzer.runnables.extraEnv": {
+        "RUSTC_BOOTSTRAP": "1"
+    },
+    "rust-analyzer.testExplorer": true,
+    "rust-analyzer.cargo.targetDir": true,
+}

@@ -1,37 +1,15 @@
 //! Beam Search
 
-use std::collections::{BinaryHeap, VecDeque};
+use std::{
+    cmp::Reverse,
+    collections::{BinaryHeap, VecDeque},
+    iter::FusedIterator,
+    time::Duration,
+};
 
-use num_traits::Bounded;
+use crate::utils::ScoredItem;
 
-struct ScoredItem<S: Ord, A>(S, A);
-
-impl<S: Ord, A> PartialEq for ScoredItem<S, A> {
-    fn eq(&self, other: &Self) -> bool {
-        self.0 == other.0
-    }
-}
-
-impl<S: Ord, A> Eq for ScoredItem<S, A> {}
-
-impl<S: Ord, A> PartialOrd for ScoredItem<S, A> {
-    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        self.0.partial_cmp(&other.0).map(|ord| ord.reverse())
-    }
-}
-
-impl<S: Ord, A> Ord for ScoredItem<S, A> {
-    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-        self.0.cmp(&other.0).reverse()
-    }
-}
-
-impl<S: Ord, A> From<(S, A)> for ScoredItem<S, A> {
-    fn from(v: (S, A)) -> Self {
-        let (cost, item) = v;
-        ScoredItem(cost, item)
-    }
-}
+use super::common::find_best;
 
 /// Struct returned by [`bms_reach`]
 pub struct BmsReachable<N, FN, FC, C: Ord> {
@@ -40,50 +18,52 @@ pub struct BmsReachable<N, FN, FC, C: Ord> {
     eval_fn: FC,
     branch_factor: usize,
     beam_width: usize,
-    remained_ops: usize,
-    pool: BinaryHeap<ScoredItem<C, N>>,
+    pool: BinaryHeap<ScoredItem<Reverse<C>, N>>,
 }
 
 impl<N, FN, IN, FC, C> Iterator for BmsReachable<N, FN, FC, C>
 where
-    N: Clone,
     FN: FnMut(&N) -> IN,
     IN: IntoIterator<Item = N>,
     FC: Fn(&N) -> Option<C>,
-    C: Ord + Copy + Bounded,
+    C: Ord + Copy,
 {
     type Item = N;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if self.remained_ops == 0 {
-            return None;
-        }
-        self.remained_ops -= 1;
         if self.to_see.is_empty() {
             let max_iter = std::cmp::min(self.pool.len(), self.beam_width);
             for _ in 0..max_iter {
-                self.to_see.push_back(self.pool.pop().unwrap().1);
+                self.to_see.push_back(self.pool.pop().unwrap().into_item());
             }
             self.pool.clear();
         }
-        if let Some(node) = self.to_see.pop_front() {
-            let mut successors: Vec<_> = (self.successor_fn)(&node)
-                .into_iter()
-                .filter_map(|n| {
-                    let cost = (self.eval_fn)(&n)?;
-                    Some((cost, n))
-                })
-                .collect();
-            successors.sort_unstable_by_key(|x| x.0);
-            successors
-                .into_iter()
-                .take(self.branch_factor)
-                .for_each(|item| self.pool.push(item.into()));
-            Some(node)
-        } else {
-            None
-        }
+
+        let node = self.to_see.pop_front()?;
+
+        let mut successors: Vec<_> = (self.successor_fn)(&node)
+            .into_iter()
+            .filter_map(|n| {
+                let cost = (self.eval_fn)(&n)?;
+                Some((Reverse(cost), n))
+            })
+            .collect();
+        successors.sort_unstable_by_key(|x| x.0);
+        successors
+            .into_iter()
+            .take(self.branch_factor)
+            .for_each(|item| self.pool.push(item.into()));
+        Some(node)
     }
+}
+
+impl<N, FN, IN, FC, C> FusedIterator for BmsReachable<N, FN, FC, C>
+where
+    FN: FnMut(&N) -> IN,
+    IN: IntoIterator<Item = N>,
+    FC: Fn(&N) -> Option<C>,
+    C: Ord + Copy,
+{
 }
 
 /// Use Beam search to efficiently traverse a tree
@@ -93,14 +73,12 @@ pub fn bms_reach<N, FN, IN, FC, C>(
     eval_fn: FC,
     branch_factor: usize,
     beam_width: usize,
-    max_ops: usize,
 ) -> BmsReachable<N, FN, FC, C>
 where
-    N: Clone,
     FN: FnMut(&N) -> IN,
     IN: IntoIterator<Item = N>,
     FC: Fn(&N) -> Option<C>,
-    C: Ord + Copy + Bounded,
+    C: Ord + Copy,
 {
     BmsReachable {
         to_see: vec![start].into(),
@@ -108,7 +86,6 @@ where
         eval_fn,
         branch_factor,
         beam_width,
-        remained_ops: max_ops,
         pool: BinaryHeap::new(),
     }
 }
@@ -117,65 +94,41 @@ where
 ///
 /// - `start` is the start node.
 /// - `successor_fn` returns a list of successors for a given node.
+/// - `leaf_check_fn` checks if a node is a leaf or not
+/// - `cost_fn` returns the final cost of a leaf node
 /// - `eval_fn` returns the approximated cost of a given node to sort and select k-best
 /// - `branch_factor` decides maximum number of branches from a node
-/// - `beam_width` decides muximum number of nodes at each depth.
-/// - `cost_fn` returns the final cost of a leaf node
-/// - `leaf_check_fn` check if a node is leaf or not
-/// - `max_ops` is the maximum number of search operations to perform
+/// - `beam_width` decides maximum number of nodes at each depth.
+/// - `max_ops` sets the maximum number of search operations to perform.
+/// - `time_limit` sets the time limit for the search.
 ///
 /// This function returns Some of a tuple of (cost, leaf node) if found, otherwise returns None
+#[allow(clippy::too_many_arguments)]
 pub fn bms<N, IN, FN, FC1, FC2, C, FR>(
     start: N,
     successor_fn: FN,
+    leaf_check_fn: FR,
+    cost_fn: FC2,
     eval_fn: FC1,
     branch_factor: usize,
     beam_width: usize,
-    cost_fn: FC2,
-    leaf_check_fn: FR,
     max_ops: usize,
+    time_limit: Duration,
 ) -> Option<(C, N)>
 where
-    N: Clone,
     IN: IntoIterator<Item = N>,
     FN: FnMut(&N) -> IN,
     FC1: Fn(&N) -> Option<C>,
     FC2: Fn(&N) -> Option<C>,
-    C: Ord + Copy + Bounded,
+    C: Ord + Copy,
     FR: Fn(&N) -> bool,
 {
-    let mut res = bms_reach(
-        start,
-        successor_fn,
-        eval_fn,
-        branch_factor,
-        beam_width,
-        max_ops,
-    );
-    let mut best_leaf_node = None;
-    let mut current_best_cost = C::max_value();
-    loop {
-        let op_n = res.next();
-        if op_n.is_none() {
-            break;
-        }
-        let n = op_n.unwrap();
-        if leaf_check_fn(&n) {
-            if let Some(cost) = cost_fn(&n) {
-                if current_best_cost > cost {
-                    current_best_cost = cost;
-                    best_leaf_node = Some(n)
-                }
-            }
-        }
-    }
-
-    best_leaf_node.and_then(|n| Some((current_best_cost, n)))
+    let mut res = bms_reach(start, successor_fn, eval_fn, branch_factor, beam_width);
+    find_best(&mut res, leaf_check_fn, cost_fn, max_ops, time_limit)
 }
 
 #[cfg(test)]
 mod test {
-
     use super::bms;
 
     type CityId = usize;
@@ -264,7 +217,7 @@ mod test {
                 .iter()
                 .map(|c| (time_func(prev_city, *c), *c))
                 .enumerate()
-                .min_by_key(|x| x.1 .0)
+                .min_by_key(|x| x.1.0)
                 .unwrap();
 
             cities.remove(i);
@@ -335,19 +288,22 @@ mod test {
 
         let branch_factor = 10;
         let beam_width = 5;
-        let max_ops = usize::MAX;
         let cost_fn = |n: &Node| Some(n.t + time_func(n.city, start));
         let leaf_check_fn = |n: &Node| n.is_leaf();
+
+        let max_ops = usize::MAX;
+        let time_limit = std::time::Duration::from_secs(10);
 
         let (cost, best_node) = bms(
             root_node,
             successor_fn,
+            leaf_check_fn,
+            cost_fn,
             eval_fn,
             branch_factor,
             beam_width,
-            cost_fn,
-            leaf_check_fn,
             max_ops,
+            time_limit,
         )
         .unwrap();
 
@@ -355,7 +311,7 @@ mod test {
         let mut visited_cities = best_node.parents.clone();
         visited_cities.push(best_node.city);
         visited_cities.sort();
-        let all_cities: Vec<CityId> = (0..n_cities).into_iter().collect();
+        let all_cities: Vec<CityId> = (0..n_cities).collect();
         assert_eq!(visited_cities, all_cities);
     }
 }
