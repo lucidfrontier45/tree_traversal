@@ -1,9 +1,8 @@
 use std::iter::FusedIterator;
 
-use crate::{
-    functional::bbs_reach,
-    node::{LowerBound, TreeNode},
-};
+use crate::node::{LowerBound, TreeNode};
+
+use super::functional::bbs_reach;
 
 /// Branch-and-Bound traversal implementation.
 pub struct BranchAndBoundTraversal<N> {

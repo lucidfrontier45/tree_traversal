@@ -19,7 +19,7 @@ cargo add tree_traversal
 # Example
 
 ```rust
-use tree_traversal::bbs::bbs;
+use tree_traversal::traversal::functional::bbs;
 
 type Node = Vec<bool>;
 let weights = [4, 2, 6, 3, 4];

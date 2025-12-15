@@ -3,7 +3,6 @@
 #![allow(clippy::module_name_repetitions)]
 #![doc = include_str!("../README.md")]
 
-pub mod functional;
 pub mod node;
 pub mod traversal;
 pub(crate) mod utils;

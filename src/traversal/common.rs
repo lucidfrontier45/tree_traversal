@@ -1,6 +1,8 @@
 use std::{iter::FusedIterator, time::Duration};
 
-use crate::{functional, node::TreeNode};
+use crate::node::TreeNode;
+
+use super::functional;
 
 /// Trait defining the interface for tree traversal algorithms.
 pub trait Traversal<N: TreeNode>: FusedIterator<Item = N> {}

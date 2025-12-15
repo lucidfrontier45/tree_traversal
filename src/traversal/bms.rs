@@ -1,9 +1,8 @@
 use std::iter::FusedIterator;
 
-use crate::{
-    functional::bms_reach,
-    node::{Approximate, TreeNode},
-};
+use crate::node::{Approximate, TreeNode};
+
+use super::functional::bms_reach;
 
 /// Beam traversal implementation.
 pub struct BeamTraversal<N> {

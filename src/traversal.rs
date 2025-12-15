@@ -5,6 +5,7 @@ mod bfs;
 mod bms;
 mod common;
 mod dfs;
+pub mod functional;
 mod gds;
 
 pub use bbs::BranchAndBoundTraversal;

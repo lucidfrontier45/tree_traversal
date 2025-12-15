@@ -1,6 +1,8 @@
 use std::iter::FusedIterator;
 
-use crate::{functional::bbs_reach, node::TreeNode};
+use crate::node::TreeNode;
+
+use super::functional::bbs_reach;
 
 /// Depth-First traversal implementation.
 pub struct DepthFirstTraversal<N> {
