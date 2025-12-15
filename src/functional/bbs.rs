@@ -2,7 +2,7 @@
 
 use std::{iter::FusedIterator, time::Duration};
 
-use crate::common::search;
+use super::common::search;
 /// Struct returned by [`bbs_reach`]
 pub struct BbsReachable<C, N, FN, FL, FC, FC2> {
     to_see: Vec<N>,

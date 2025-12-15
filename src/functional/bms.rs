@@ -6,7 +6,7 @@ use std::{
     time::Duration,
 };
 
-use crate::common::search;
+use super::common::search;
 
 struct ScoredItem<S: Ord, A>(S, A);
 

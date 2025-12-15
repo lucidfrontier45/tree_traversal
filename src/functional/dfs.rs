@@ -2,7 +2,7 @@
 
 use std::time::Duration;
 
-use crate::{bbs::bbs_reach, common::search};
+use super::{bbs::bbs_reach, common::search};
 
 /// Find the leaf node with the lowest cost by using Depth First Search
 ///
