@@ -1,6 +1,6 @@
 use std::iter::FusedIterator;
 
-use crate::{functional::bms::bms_reach, node::TreeNode};
+use crate::{functional::bms_reach, node::TreeNode};
 
 /// Breadth-First traversal implementation.
 pub struct BreadthFirstTraversal<N> {

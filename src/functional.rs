@@ -1,8 +1,15 @@
 //! functional interfaces for tree traversal algorithms
 
-pub mod bbs;
-pub mod bfs;
-pub mod bms;
-pub mod common;
-pub mod dfs;
-pub mod gds;
+mod bbs;
+mod bfs;
+mod bms;
+mod common;
+mod dfs;
+mod gds;
+
+pub use bbs::{BbsReachable, bbs, bbs_reach};
+pub use bfs::bfs;
+pub use bms::{BmsReachable, bms, bms_reach};
+pub use common::search;
+pub use dfs::dfs;
+pub use gds::gds;

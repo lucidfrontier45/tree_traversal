@@ -1,7 +1,7 @@
 use std::iter::FusedIterator;
 
 use crate::{
-    functional::bbs::bbs_reach,
+    functional::bbs_reach,
     node::{LowerBound, TreeNode},
 };
 
