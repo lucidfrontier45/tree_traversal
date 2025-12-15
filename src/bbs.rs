@@ -116,6 +116,7 @@ where
 /// - `cost_fn` returns the final cost of a leaf node
 /// - `leaf_check_fn` check if a node is leaf or not
 /// - `max_ops` is the maximum number of search operations to perform
+/// - `time_limit` is the maximum duration allowed for the search operation
 ///
 /// This function returns Some of a tuple of (cost, leaf node) if found, otherwise returns None
 pub fn bbs<C, N, IN, FN, FL, FC, FC2>(
