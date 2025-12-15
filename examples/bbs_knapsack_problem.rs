@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use tree_traversal::bbs::bbs;
 
 type Node = Vec<bool>;
@@ -55,14 +57,16 @@ fn main() {
 
     let leaf_check_fn = |n: &Node| n.len() == total_items;
     let max_ops = usize::MAX;
+    let time_limit = Duration::from_secs(10);
 
     let (cost, best_node) = bbs(
         vec![],
         successor_fn,
-        lower_bound_fn,
-        cost_fn,
         leaf_check_fn,
+        cost_fn,
+        lower_bound_fn,
         max_ops,
+        time_limit,
     )
     .unwrap();
     let cost = u32::MAX - cost;

@@ -1,26 +1,28 @@
 //! Greedy Search
 
-use num_traits::Bounded;
+use std::time::Duration;
 
 use crate::bms::bms;
 
-/// Findthe leaf node with the lowest cost by using Greedy Search
+/// Find the leaf node with the lowest cost by using Greedy Search
 ///
 /// - `start` is the start node.
 /// - `successor_fn` returns a list of successors for a given node.
-/// - `eval_fn` returns the approximated cost of a given node to sort and select k-best
-/// - `cost_fn` returns the final cost of a leaf node
 /// - `leaf_check_fn` check if a node is leaf or not
+/// - `cost_fn` returns the final cost of a leaf node
+/// - `eval_fn` returns the approximated cost of a given node to sort and select k-best
 /// - `max_ops` is the maximum number of search operations to perform
+/// - `time_limit` is the maximum duration allowed for the search operation
 ///
 /// This function returns Some of a tuple of (cost, leaf node) if found, otherwise returns None
 pub fn gds<N, IN, FN, FC1, FC2, C, FR>(
     start: N,
     successor_fn: FN,
-    eval_fn: FC1,
-    cost_fn: FC2,
     leaf_check_fn: FR,
+    cost_fn: FC2,
+    eval_fn: FC1,
     max_ops: usize,
+    time_limit: Duration,
 ) -> Option<(C, N)>
 where
     N: Clone,
@@ -28,18 +30,19 @@ where
     FN: FnMut(&N) -> IN,
     FC1: Fn(&N) -> Option<C>,
     FC2: Fn(&N) -> Option<C>,
-    C: Ord + Copy + Bounded,
+    C: Ord + Copy,
     FR: Fn(&N) -> bool,
 {
     bms(
         start,
         successor_fn,
+        leaf_check_fn,
+        cost_fn,
         eval_fn,
         usize::MAX,
         1,
-        cost_fn,
-        leaf_check_fn,
         max_ops,
+        time_limit,
     )
 }
 
@@ -177,14 +180,16 @@ mod test {
         let leaf_check_fn = |n: &Node| n.is_leaf();
 
         let max_ops = usize::MAX;
+        let time_limit = std::time::Duration::from_secs(10);
 
         let (cost, best_node) = gds(
             root_node,
             successor_fn,
-            eval_fn,
-            cost_fn,
             leaf_check_fn,
+            cost_fn,
+            eval_fn,
             max_ops,
+            time_limit,
         )
         .unwrap();
 
