@@ -50,6 +50,9 @@ where
         };
 
         queue.push(ScoredItem::from((Reverse(cost), n)));
+        if queue.len() > queue_size {
+            queue.pop();
+        }
     }
 
     queue
