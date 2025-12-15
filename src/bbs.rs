@@ -48,14 +48,15 @@ where
     fn next(&mut self) -> Option<Self::Item> {
         let node = self.to_see.pop()?;
 
-        // update best score
-        if (self.leaf_check_fn)(&node)
-            && let Some(cost) = (self.cost_fn)(&node)
-            && self.current_best_cost.is_none_or(|c| c > cost)
-        {
-            self.current_best_cost = Some(cost);
+        if (self.leaf_check_fn)(&node) {
+            // if current node is leaf, check cost
+            if let Some(cost) = (self.cost_fn)(&node)
+                && self.current_best_cost.is_none_or(|c| c > cost)
+            {
+                self.current_best_cost = Some(cost);
+            }
         } else {
-            // check lower bound
+            // if current node is not leaf, check lower bound and expand
             if let Some(lb) = (self.lower_bound_fn)(&node)
                 && self.current_best_cost.is_none_or(|c| c > lb)
             {
