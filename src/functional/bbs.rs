@@ -36,7 +36,6 @@ impl<C, N, FN, FL, FC, FC2> BbsReachable<C, N, FN, FL, FC, FC2> {
 impl<C, N, FN, FL, FC, FC2, IN> Iterator for BbsReachable<C, N, FN, FL, FC, FC2>
 where
     C: Ord + Copy,
-    N: Clone,
     FN: FnMut(&N) -> IN,
     IN: IntoIterator<Item = N>,
     FL: Fn(&N) -> bool,
@@ -61,7 +60,7 @@ where
                 && self.current_best_cost.is_none_or(|c| c > lb)
             {
                 for s in (self.successor_fn)(&node) {
-                    self.to_see.push(s.clone());
+                    self.to_see.push(s);
                 }
             }
         }
@@ -73,7 +72,6 @@ where
 impl<C, N, FN, FL, FC, FC2, IN> FusedIterator for BbsReachable<C, N, FN, FL, FC, FC2>
 where
     C: Ord + Copy,
-    N: Clone,
     FN: FnMut(&N) -> IN,
     IN: IntoIterator<Item = N>,
     FL: Fn(&N) -> bool,
@@ -92,7 +90,6 @@ pub fn bbs_reach<C, N, FN, FL, FC, FC2, IN>(
 ) -> BbsReachable<C, N, FN, FL, FC, FC2>
 where
     C: Ord + Copy,
-    N: Clone,
     FN: FnMut(&N) -> IN,
     IN: IntoIterator<Item = N>,
     FC: Fn(&N) -> Option<C>,
@@ -131,7 +128,6 @@ pub fn bbs<C, N, IN, FN, FL, FC, FC2>(
 ) -> Option<(C, N)>
 where
     C: Ord + Copy,
-    N: Clone,
     IN: IntoIterator<Item = N>,
     FN: FnMut(&N) -> IN,
     FC: Copy + Fn(&N) -> Option<C>,

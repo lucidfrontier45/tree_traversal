@@ -25,7 +25,6 @@ pub fn gds<N, IN, FN, FC1, FC2, C, FR>(
     time_limit: Duration,
 ) -> Option<(C, N)>
 where
-    N: Clone,
     IN: IntoIterator<Item = N>,
     FN: FnMut(&N) -> IN,
     FC1: Fn(&N) -> Option<C>,

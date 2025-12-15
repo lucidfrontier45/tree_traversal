@@ -49,7 +49,6 @@ pub struct BmsReachable<N, FN, FC, C: Ord> {
 
 impl<N, FN, IN, FC, C> Iterator for BmsReachable<N, FN, FC, C>
 where
-    N: Clone,
     FN: FnMut(&N) -> IN,
     IN: IntoIterator<Item = N>,
     FC: Fn(&N) -> Option<C>,
@@ -86,7 +85,6 @@ where
 
 impl<N, FN, IN, FC, C> FusedIterator for BmsReachable<N, FN, FC, C>
 where
-    N: Clone,
     FN: FnMut(&N) -> IN,
     IN: IntoIterator<Item = N>,
     FC: Fn(&N) -> Option<C>,
@@ -103,7 +101,6 @@ pub fn bms_reach<N, FN, IN, FC, C>(
     beam_width: usize,
 ) -> BmsReachable<N, FN, FC, C>
 where
-    N: Clone,
     FN: FnMut(&N) -> IN,
     IN: IntoIterator<Item = N>,
     FC: Fn(&N) -> Option<C>,
@@ -145,7 +142,6 @@ pub fn bms<N, IN, FN, FC1, FC2, C, FR>(
     time_limit: Duration,
 ) -> Option<(C, N)>
 where
-    N: Clone,
     IN: IntoIterator<Item = N>,
     FN: FnMut(&N) -> IN,
     FC1: Fn(&N) -> Option<C>,
