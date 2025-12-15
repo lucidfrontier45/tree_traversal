@@ -8,7 +8,7 @@ use super::bms::bms;
 ///
 /// - `start` is the start node.
 /// - `successor_fn` returns a list of successors for a given node.
-/// - `leaf_check_fn` check if a node is leaf or not
+/// - `leaf_check_fn` checks if a node is a leaf or not
 /// - `cost_fn` returns the final cost of a leaf node
 /// - `eval_fn` returns the approximated cost of a given node to sort and select k-best
 /// - `max_ops` is the maximum number of search operations to perform
