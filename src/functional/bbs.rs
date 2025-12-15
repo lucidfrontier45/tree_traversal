@@ -13,26 +13,6 @@ pub struct BbsReachable<C, N, FN, FL, FC, FC2> {
     current_best_cost: Option<C>,
 }
 
-impl<C, N, FN, FL, FC, FC2> BbsReachable<C, N, FN, FL, FC, FC2> {
-    pub(crate) fn new(
-        to_see: Vec<N>,
-        successor_fn: FN,
-        leaf_check_fn: FL,
-        cost_fn: FC,
-        lower_bound_fn: FC2,
-        current_best_cost: Option<C>,
-    ) -> Self {
-        Self {
-            to_see,
-            successor_fn,
-            leaf_check_fn,
-            cost_fn,
-            lower_bound_fn,
-            current_best_cost,
-        }
-    }
-}
-
 impl<C, N, FN, FL, FC, FC2, IN> Iterator for BbsReachable<C, N, FN, FL, FC, FC2>
 where
     C: Ord + Copy,
@@ -96,14 +76,14 @@ where
     FL: Fn(&N) -> bool,
     FC2: Fn(&N) -> Option<C>,
 {
-    BbsReachable::new(
-        vec![start],
+    BbsReachable {
+        to_see: vec![start],
         successor_fn,
         leaf_check_fn,
         cost_fn,
         lower_bound_fn,
-        None,
-    )
+        current_best_cost: None,
+    }
 }
 
 /// Find the leaf node with the lowest cost by using Branch and Bound

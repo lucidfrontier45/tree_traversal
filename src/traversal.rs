@@ -1,7 +1,9 @@
 //! traversal algorithms for tree traversal
 
-mod bb;
+mod bbs;
 mod common;
+mod dfs;
 
-pub use bb::BranchAndBoundTraversal;
-pub use common::{traverse, Traversal};
+pub use bbs::BranchAndBoundTraversal;
+pub use common::{Traversal, traverse};
+pub use dfs::DepthFirstTraversal;
