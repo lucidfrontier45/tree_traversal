@@ -24,7 +24,6 @@ pub fn dfs<N, IN, FN, FC, C, FL>(
 ) -> Option<(C, N)>
 where
     C: Ord + Copy + Default,
-    N: Clone,
     IN: IntoIterator<Item = N>,
     FN: FnMut(&N) -> IN,
     FL: Fn(&N) -> bool,

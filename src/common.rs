@@ -12,7 +12,6 @@ pub fn search<C, N, FC, FL>(
 ) -> Option<(C, N)>
 where
     C: Ord + Copy,
-    N: Clone,
     FC: Fn(&N) -> Option<C>,
     FL: Fn(&N) -> bool,
 {

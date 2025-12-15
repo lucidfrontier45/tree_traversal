@@ -23,7 +23,6 @@ pub fn bfs<N, IN, FN, FC, C, FR>(
     time_limit: Duration,
 ) -> Option<(C, N)>
 where
-    N: Clone,
     IN: IntoIterator<Item = N>,
     FN: FnMut(&N) -> IN,
     FC: Fn(&N) -> Option<C>,
