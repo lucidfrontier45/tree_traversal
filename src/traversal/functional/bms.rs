@@ -124,7 +124,14 @@ where
     FR: Fn(&N) -> bool,
 {
     let mut res = bms_reach(start, successor_fn, eval_fn, branch_factor, beam_width);
-    find_best(&mut res, leaf_check_fn, cost_fn, max_ops, time_limit)
+    find_best(
+        &mut res,
+        leaf_check_fn,
+        cost_fn,
+        max_ops,
+        time_limit,
+        |_, _| {},
+    )
 }
 
 #[cfg(test)]

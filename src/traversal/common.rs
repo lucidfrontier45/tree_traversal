@@ -31,6 +31,7 @@ pub fn traverse<N: TreeNode>(
     max_ops: usize,
     time_limit: Duration,
     queue_size: usize,
+    callback: impl FnMut(usize, &N),
 ) -> Vec<(<N as TreeNode>::Cost, N)> {
     functional::traverse(
         traversal,
@@ -39,6 +40,7 @@ pub fn traverse<N: TreeNode>(
         max_ops,
         time_limit,
         queue_size,
+        callback,
     )
 }
 
@@ -57,6 +59,7 @@ pub fn find_best<N: TreeNode>(
     traversal: &mut impl FusedIterator<Item = N>,
     max_ops: usize,
     time_limit: Duration,
+    callback: impl FnMut(usize, &N),
 ) -> Option<(<N as TreeNode>::Cost, N)> {
-    traverse(traversal, max_ops, time_limit, 1).pop()
+    traverse(traversal, max_ops, time_limit, 1, callback).pop()
 }

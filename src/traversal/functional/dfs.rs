@@ -36,7 +36,14 @@ where
         |_| None,
         |_| Some(C::default()),
     );
-    find_best(&mut res, leaf_check_fn, cost_fn, max_ops, time_limit)
+    find_best(
+        &mut res,
+        leaf_check_fn,
+        cost_fn,
+        max_ops,
+        time_limit,
+        |_, _| {},
+    )
 }
 
 #[cfg(test)]

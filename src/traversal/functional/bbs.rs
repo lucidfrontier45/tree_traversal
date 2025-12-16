@@ -115,7 +115,14 @@ where
     FC2: Fn(&N) -> Option<C>,
 {
     let mut res = bbs_reach(start, successor_fn, leaf_check_fn, cost_fn, lower_bound_fn);
-    find_best(&mut res, leaf_check_fn, cost_fn, max_ops, time_limit)
+    find_best(
+        &mut res,
+        leaf_check_fn,
+        cost_fn,
+        max_ops,
+        time_limit,
+        |_, _| {},
+    )
 }
 
 #[cfg(test)]

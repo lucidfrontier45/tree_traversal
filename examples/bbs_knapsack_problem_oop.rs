@@ -102,11 +102,14 @@ fn main() {
         profits: Rc::new(profits),
     };
 
+    let null_callback = |_: usize, _: &Node| {};
+
     let mut traversal = BranchAndBoundTraversal::new(root_node).fuse();
     let result = tree_traversal::traversal::find_best(
         &mut traversal,
         10000,
         std::time::Duration::from_secs(100),
+        null_callback,
     );
     if let Some((cost, node)) = result {
         println!("Best profit: {}", u32::MAX - cost);

@@ -20,18 +20,20 @@ use crate::utils::ScoredItem;
 ///
 /// # Returns
 /// A vector of tuples containing the cost and the node, limited to `queue_size`.
-pub fn traverse<C, N, FC, FL>(
+pub fn traverse<C, N, FC, FL, CB>(
     tree: &mut impl FusedIterator<Item = N>,
     leaf_check_fn: FL,
     cost_fn: FC,
     max_ops: usize,
     time_limit: Duration,
     queue_size: usize,
+    mut callback_fn: CB,
 ) -> Vec<(C, N)>
 where
     C: Ord + Copy,
     FC: Fn(&N) -> Option<C>,
     FL: Fn(&N) -> bool,
+    CB: FnMut(usize, &N),
 {
     let mut queue = BinaryHeap::new();
 
@@ -40,6 +42,7 @@ where
         if i >= max_ops || start.elapsed() >= time_limit {
             break;
         }
+        callback_fn(i, &n);
 
         if !leaf_check_fn(&n) {
             continue;
@@ -78,17 +81,19 @@ where
 ///
 /// # Returns
 /// The best (lowest cost) leaf node and its cost, or `None` if no valid leaf is found.
-pub fn find_best<C, N, FC, FL>(
+pub fn find_best<C, N, FC, FL, CB>(
     tree: &mut impl FusedIterator<Item = N>,
     leaf_check_fn: FL,
     cost_fn: FC,
     max_ops: usize,
     time_limit: Duration,
+    mut callback_fn: CB,
 ) -> Option<(C, N)>
 where
     C: Ord + Copy,
     FC: Fn(&N) -> Option<C>,
     FL: Fn(&N) -> bool,
+    CB: FnMut(usize, &N),
 {
     traverse(
         tree,
@@ -97,6 +102,7 @@ where
         max_ops,
         time_limit,
         1, // only need the best one
+        &mut callback_fn,
     )
     .pop()
 }
