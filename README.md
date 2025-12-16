@@ -243,6 +243,7 @@ let result = tree_traversal::traversal::find_best(
     &mut traversal,
     10000,
     std::time::Duration::from_secs(100),
+    |_, _| {},
 );
 if let Some((cost, node)) = result {
     println!("Best profit: {}", u32::MAX - cost);

@@ -10,6 +10,9 @@ use crate::utils::ScoredItem;
 /// computes its cost using the `cost_fn`, and maintains a priority queue of the top `queue_size` nodes with the lowest costs.
 /// The traversal stops early if the maximum number of operations (`max_ops`) is reached or the time limit is exceeded.
 ///
+/// The `callback_fn` is invoked for every visited node with its index and a reference to the node. It can be used for
+/// progress reporting, logging, or other side-effects. The callback is called before leaf/cost checks.
+///
 /// # Parameters
 /// - `tree`: A mutable reference to a fused iterator over the tree nodes.
 /// - `leaf_check_fn`: A function that checks if a node is a leaf.
@@ -17,21 +20,24 @@ use crate::utils::ScoredItem;
 /// - `max_ops`: The maximum number of nodes to process.
 /// - `time_limit`: The maximum time allowed for the traversal.
 /// - `queue_size`: The maximum number of best nodes to keep in the result.
+/// - `callback_fn`: A mutable callback invoked as `callback_fn(n_step, &node)` for each visited node.
 ///
 /// # Returns
 /// A vector of tuples containing the cost and the node, limited to `queue_size`.
-pub fn traverse<C, N, FC, FL>(
+pub fn traverse<C, N, FC, FL, CB>(
     tree: &mut impl FusedIterator<Item = N>,
     leaf_check_fn: FL,
     cost_fn: FC,
     max_ops: usize,
     time_limit: Duration,
     queue_size: usize,
+    mut callback_fn: CB,
 ) -> Vec<(C, N)>
 where
     C: Ord + Copy,
     FC: Fn(&N) -> Option<C>,
     FL: Fn(&N) -> bool,
+    CB: FnMut(usize, &N),
 {
     let mut queue = BinaryHeap::new();
 
@@ -40,6 +46,7 @@ where
         if i >= max_ops || start.elapsed() >= time_limit {
             break;
         }
+        callback_fn(i, &n);
 
         if !leaf_check_fn(&n) {
             continue;
@@ -68,6 +75,8 @@ where
 /// Finds the best (lowest cost) leaf node in the tree iterator within the given constraints.
 ///
 /// This function is a convenience wrapper around `traverse` that returns only the single best node.
+/// It accepts the same parameters as `traverse`, including `callback_fn`, which is invoked for each
+/// visited node. Use the callback for logging, progress updates, or to collect statistics about visited nodes.
 ///
 /// # Parameters
 /// - `tree`: A mutable reference to a fused iterator over the tree nodes.
@@ -75,20 +84,23 @@ where
 /// - `cost_fn`: A function that computes the cost of a node, returning `None` if the cost cannot be determined.
 /// - `max_ops`: The maximum number of nodes to process.
 /// - `time_limit`: The maximum time allowed for the traversal.
+/// - `callback_fn`: A mutable callback invoked as `callback_fn(n_step, &node)` for each visited node.
 ///
 /// # Returns
 /// The best (lowest cost) leaf node and its cost, or `None` if no valid leaf is found.
-pub fn find_best<C, N, FC, FL>(
+pub fn find_best<C, N, FC, FL, CB>(
     tree: &mut impl FusedIterator<Item = N>,
     leaf_check_fn: FL,
     cost_fn: FC,
     max_ops: usize,
     time_limit: Duration,
+    mut callback_fn: CB,
 ) -> Option<(C, N)>
 where
     C: Ord + Copy,
     FC: Fn(&N) -> Option<C>,
     FL: Fn(&N) -> bool,
+    CB: FnMut(usize, &N),
 {
     traverse(
         tree,
@@ -97,6 +109,7 @@ where
         max_ops,
         time_limit,
         1, // only need the best one
+        &mut callback_fn,
     )
     .pop()
 }
