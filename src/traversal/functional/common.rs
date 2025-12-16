@@ -75,7 +75,7 @@ where
 /// Finds the best (lowest cost) leaf node in the tree iterator within the given constraints.
 ///
 /// This function is a convenience wrapper around `traverse` that returns only the single best node.
-/// It accepts the same parameters as `traverse` with an additional `callback_fn` argument which is invoked for each
+/// It accepts the same parameters as `traverse`, including `callback_fn`, which is invoked for each
 /// visited node. Use the callback for logging, progress updates, or to collect statistics about visited nodes.
 ///
 /// # Parameters
