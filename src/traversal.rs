@@ -6,6 +6,7 @@ mod bms;
 mod common;
 mod dfs;
 mod gds;
+mod pfs;
 
 pub mod functional;
 
@@ -15,3 +16,4 @@ pub use bms::BeamTraversal;
 pub use common::{Traversal, find_best, traverse};
 pub use dfs::DepthFirstTraversal;
 pub use gds::GreedyTraversal;
+pub use pfs::PriorityFirstTraversal;

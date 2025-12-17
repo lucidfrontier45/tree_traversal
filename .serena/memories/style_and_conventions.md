@@ -12,6 +12,7 @@
 - **Testing**: Include unit tests in `#[cfg(test)]` modules within the same file.
 - **Examples**: Use closures for functions like `successor_fn`, `cost_fn`, etc.
 - **Performance**: Algorithms are designed for optimization, using bounded types from `num_traits`.
+- **Module**: Never use `mod.rs` style.
 
 ## Design Patterns
 
