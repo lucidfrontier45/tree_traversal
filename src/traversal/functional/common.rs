@@ -113,3 +113,39 @@ where
     )
     .pop()
 }
+
+/// A trait representing a container for tree nodes used in traversal algorithms.
+pub trait NodeContainer {
+    /// The type of nodes stored in the container.
+    type Node;
+
+    /// Pops a node from the container.
+    fn pop(&mut self) -> Option<Self::Node>;
+    /// Expand the given node and push its children into the container.
+    fn expand_and_push(&mut self, node: &Self::Node);
+}
+
+pub struct Reachable<C> {
+    to_see: C,
+}
+
+impl<C> Reachable<C> {
+    pub fn new(to_see: C) -> Self {
+        Self { to_see }
+    }
+}
+
+impl<N, C> Iterator for Reachable<C>
+where
+    C: NodeContainer<Node = N>,
+{
+    type Item = N;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let node = self.to_see.pop()?;
+        self.to_see.expand_and_push(&node);
+        Some(node)
+    }
+}
+
+impl<C> FusedIterator for Reachable<C> where C: NodeContainer {}

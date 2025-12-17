@@ -1,10 +1,13 @@
 //! Branch and Bound Search
 
-use std::{iter::FusedIterator, time::Duration};
+use std::time::Duration;
 
-use super::common::find_best;
-/// Struct returned by [`bbs_reach`]
-pub struct BbsReachable<C, N, FN, FL, FC, FC2> {
+use super::{
+    common::{NodeContainer, Reachable},
+    find_best,
+};
+
+pub struct BbsContainer<C, N, FN, FL, FC, FC2> {
     to_see: Vec<N>,
     successor_fn: FN,
     leaf_check_fn: FL,
@@ -13,7 +16,7 @@ pub struct BbsReachable<C, N, FN, FL, FC, FC2> {
     current_best_cost: Option<C>,
 }
 
-impl<C, N, FN, FL, FC, FC2, IN> Iterator for BbsReachable<C, N, FN, FL, FC, FC2>
+impl<C, N, IN, FN, FL, FC, FC2> BbsContainer<C, N, FN, FL, FC, FC2>
 where
     C: Ord + Copy,
     FN: FnMut(&N) -> IN,
@@ -22,52 +25,64 @@ where
     FC: Fn(&N) -> Option<C>,
     FC2: Fn(&N) -> Option<C>,
 {
-    type Item = N;
+    pub fn new(
+        successor_fn: FN,
+        leaf_check_fn: FL,
+        cost_fn: FC,
+        lower_bound_fn: FC2,
+        start: N,
+    ) -> Self {
+        Self {
+            to_see: vec![start],
+            successor_fn,
+            leaf_check_fn,
+            cost_fn,
+            lower_bound_fn,
+            current_best_cost: None,
+        }
+    }
+}
 
-    fn next(&mut self) -> Option<Self::Item> {
-        let node = self.to_see.pop()?;
+impl<C, N, FN, FL, FC, FC2, IN> NodeContainer for BbsContainer<C, N, FN, FL, FC, FC2>
+where
+    C: Ord + Copy,
+    FN: FnMut(&N) -> IN,
+    IN: IntoIterator<Item = N>,
+    FL: Fn(&N) -> bool,
+    FC: Fn(&N) -> Option<C>,
+    FC2: Fn(&N) -> Option<C>,
+{
+    type Node = N;
 
-        if (self.leaf_check_fn)(&node) {
-            // if current node is leaf, check cost
-            if let Some(cost) = (self.cost_fn)(&node)
+    fn pop(&mut self) -> Option<Self::Node> {
+        self.to_see.pop()
+    }
+
+    fn expand_and_push(&mut self, node: &Self::Node) {
+        if (self.leaf_check_fn)(node) {
+            if let Some(cost) = (self.cost_fn)(node)
                 && self.current_best_cost.is_none_or(|c| c > cost)
             {
                 self.current_best_cost = Some(cost);
             }
-        } else {
-            // if current node is not leaf, check lower bound and expand
-            if let Some(lb) = (self.lower_bound_fn)(&node)
-                && self.current_best_cost.is_none_or(|c| c > lb)
-            {
-                for s in (self.successor_fn)(&node) {
-                    self.to_see.push(s);
-                }
+        } else if let Some(lb) = (self.lower_bound_fn)(node)
+            && self.current_best_cost.is_none_or(|c| c > lb)
+        {
+            for s in (self.successor_fn)(node) {
+                self.to_see.push(s);
             }
         }
-
-        Some(node)
     }
 }
 
-impl<C, N, FN, FL, FC, FC2, IN> FusedIterator for BbsReachable<C, N, FN, FL, FC, FC2>
-where
-    C: Ord + Copy,
-    FN: FnMut(&N) -> IN,
-    IN: IntoIterator<Item = N>,
-    FL: Fn(&N) -> bool,
-    FC: Fn(&N) -> Option<C>,
-    FC2: Fn(&N) -> Option<C>,
-{
-}
-
-/// Use Branch and Bound technique to efficiently traverse a tree
-pub fn bbs_reach<C, N, FN, FL, FC, FC2, IN>(
+/// Creates a Branch-and-Bound traversal iterator starting from the given node.
+pub fn bbs_reach<C, N, IN, FN, FL, FC, FC2>(
     start: N,
     successor_fn: FN,
     leaf_check_fn: FL,
     cost_fn: FC,
     lower_bound_fn: FC2,
-) -> BbsReachable<C, N, FN, FL, FC, FC2>
+) -> Reachable<BbsContainer<C, N, FN, FL, FC, FC2>>
 where
     C: Ord + Copy,
     FN: FnMut(&N) -> IN,
@@ -76,14 +91,8 @@ where
     FL: Fn(&N) -> bool,
     FC2: Fn(&N) -> Option<C>,
 {
-    BbsReachable {
-        to_see: vec![start],
-        successor_fn,
-        leaf_check_fn,
-        cost_fn,
-        lower_bound_fn,
-        current_best_cost: None,
-    }
+    let container = BbsContainer::new(successor_fn, leaf_check_fn, cost_fn, lower_bound_fn, start);
+    Reachable::new(container)
 }
 
 /// Find the leaf node with the lowest cost by using Branch and Bound

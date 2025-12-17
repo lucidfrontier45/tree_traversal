@@ -1,8 +1,57 @@
 //! Breadth First Search
 
-use std::time::Duration;
+use std::{collections::VecDeque, time::Duration};
 
-use super::bms::bms;
+use super::{
+    common::{NodeContainer, Reachable},
+    find_best,
+};
+
+pub struct BfsContainer<N, FN> {
+    to_see: VecDeque<N>,
+    successor_fn: FN,
+}
+
+impl<N, FN, IN> BfsContainer<N, FN>
+where
+    FN: FnMut(&N) -> IN,
+    IN: IntoIterator<Item = N>,
+{
+    pub fn new(successor_fn: FN) -> Self {
+        Self {
+            to_see: VecDeque::new(),
+            successor_fn,
+        }
+    }
+}
+
+impl<N, FN, IN> NodeContainer for BfsContainer<N, FN>
+where
+    FN: FnMut(&N) -> IN,
+    IN: IntoIterator<Item = N>,
+{
+    type Node = N;
+
+    fn pop(&mut self) -> Option<Self::Node> {
+        self.to_see.pop_front()
+    }
+
+    fn expand_and_push(&mut self, node: &Self::Node) {
+        for s in (self.successor_fn)(node) {
+            self.to_see.push_back(s);
+        }
+    }
+}
+
+pub fn bfs_reach<N, IN, FN>(start: N, successor_fn: FN) -> Reachable<BfsContainer<N, FN>>
+where
+    IN: IntoIterator<Item = N>,
+    FN: FnMut(&N) -> IN,
+{
+    let mut container = BfsContainer::new(successor_fn);
+    container.to_see.push_back(start);
+    Reachable::new(container)
+}
 
 /// Find the leaf node with the lowest cost by using Breadth First Search
 ///
@@ -29,16 +78,14 @@ where
     C: Ord + Copy + Default,
     FR: Fn(&N) -> bool,
 {
-    bms(
-        start,
-        successor_fn,
+    let mut res = bfs_reach(start, successor_fn);
+    find_best(
+        &mut res,
         leaf_check_fn,
         cost_fn,
-        |_| Some(C::default()),
-        usize::MAX,
-        usize::MAX,
         max_ops,
         time_limit,
+        |_, _| {},
     )
 }
 

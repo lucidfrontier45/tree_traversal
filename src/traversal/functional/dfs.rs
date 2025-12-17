@@ -2,7 +2,56 @@
 
 use std::time::Duration;
 
-use super::{bbs::bbs_reach, common::find_best};
+use super::{
+    common::{NodeContainer, Reachable},
+    find_best,
+};
+
+pub struct DfsContainer<N, FN> {
+    to_see: Vec<N>,
+    successor_fn: FN,
+}
+
+impl<N, FN, IN> DfsContainer<N, FN>
+where
+    FN: FnMut(&N) -> IN,
+    IN: IntoIterator<Item = N>,
+{
+    pub fn new(successor_fn: FN) -> Self {
+        Self {
+            to_see: Vec::new(),
+            successor_fn,
+        }
+    }
+}
+
+impl<N, FN, IN> NodeContainer for DfsContainer<N, FN>
+where
+    FN: FnMut(&N) -> IN,
+    IN: IntoIterator<Item = N>,
+{
+    type Node = N;
+
+    fn pop(&mut self) -> Option<Self::Node> {
+        self.to_see.pop()
+    }
+
+    fn expand_and_push(&mut self, node: &Self::Node) {
+        for s in (self.successor_fn)(node) {
+            self.to_see.push(s);
+        }
+    }
+}
+
+pub fn dfs_reach<N, IN, FN>(start: N, successor_fn: FN) -> Reachable<DfsContainer<N, FN>>
+where
+    IN: IntoIterator<Item = N>,
+    FN: FnMut(&N) -> IN,
+{
+    let mut container = DfsContainer::new(successor_fn);
+    container.to_see.push(start);
+    Reachable::new(container)
+}
 
 /// Find the leaf node with the lowest cost by using Depth First Search
 ///
@@ -29,13 +78,7 @@ where
     FL: Fn(&N) -> bool,
     FC: Fn(&N) -> Option<C>,
 {
-    let mut res = bbs_reach(
-        start,
-        successor_fn,
-        |_| false,
-        |_| None,
-        |_| Some(C::default()),
-    );
+    let mut res = dfs_reach(start, successor_fn);
     find_best(
         &mut res,
         leaf_check_fn,

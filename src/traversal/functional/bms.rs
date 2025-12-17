@@ -3,16 +3,15 @@
 use std::{
     cmp::Reverse,
     collections::{BinaryHeap, VecDeque},
-    iter::FusedIterator,
     time::Duration,
 };
 
 use crate::utils::ScoredItem;
 
-use super::common::find_best;
+use super::common::{NodeContainer, Reachable, find_best};
 
-/// Struct returned by [`bms_reach`]
-pub struct BmsReachable<N, FN, FC, C: Ord> {
+/// Container used by beam search to drive a `Reachable` iterator.
+pub struct BmsContainer<N, FN, FC, C: Ord> {
     to_see: VecDeque<N>,
     successor_fn: FN,
     eval_fn: FC,
@@ -21,16 +20,41 @@ pub struct BmsReachable<N, FN, FC, C: Ord> {
     pool: BinaryHeap<ScoredItem<Reverse<C>, N>>,
 }
 
-impl<N, FN, IN, FC, C> Iterator for BmsReachable<N, FN, FC, C>
+impl<N, IN, FN, FC, C> BmsContainer<N, FN, FC, C>
 where
     FN: FnMut(&N) -> IN,
     IN: IntoIterator<Item = N>,
     FC: Fn(&N) -> Option<C>,
     C: Ord + Copy,
 {
-    type Item = N;
+    pub fn new(
+        start: N,
+        successor_fn: FN,
+        eval_fn: FC,
+        branch_factor: usize,
+        beam_width: usize,
+    ) -> Self {
+        Self {
+            to_see: vec![start].into(),
+            successor_fn,
+            eval_fn,
+            branch_factor,
+            beam_width,
+            pool: BinaryHeap::new(),
+        }
+    }
+}
 
-    fn next(&mut self) -> Option<Self::Item> {
+impl<N, IN, FN, FC, C> NodeContainer for BmsContainer<N, FN, FC, C>
+where
+    FN: FnMut(&N) -> IN,
+    IN: IntoIterator<Item = N>,
+    FC: Fn(&N) -> Option<C>,
+    C: Ord + Copy,
+{
+    type Node = N;
+
+    fn pop(&mut self) -> Option<Self::Node> {
         if self.to_see.is_empty() {
             let max_iter = std::cmp::min(self.pool.len(), self.beam_width);
             for _ in 0..max_iter {
@@ -38,10 +62,11 @@ where
             }
             self.pool.clear();
         }
+        self.to_see.pop_front()
+    }
 
-        let node = self.to_see.pop_front()?;
-
-        let mut successors: Vec<_> = (self.successor_fn)(&node)
+    fn expand_and_push(&mut self, node: &Self::Node) {
+        let mut successors: Vec<_> = (self.successor_fn)(node)
             .into_iter()
             .filter_map(|n| {
                 let cost = (self.eval_fn)(&n)?;
@@ -52,42 +77,26 @@ where
         successors
             .into_iter()
             .take(self.branch_factor)
-            .for_each(|item| self.pool.push(item.into()));
-        Some(node)
+            .for_each(|(score, n)| self.pool.push(ScoredItem::from((score, n))));
     }
 }
 
-impl<N, FN, IN, FC, C> FusedIterator for BmsReachable<N, FN, FC, C>
-where
-    FN: FnMut(&N) -> IN,
-    IN: IntoIterator<Item = N>,
-    FC: Fn(&N) -> Option<C>,
-    C: Ord + Copy,
-{
-}
-
-/// Use Beam search to efficiently traverse a tree
-pub fn bms_reach<N, FN, IN, FC, C>(
+/// Creates a Beam Search traversal iterator starting from the given node.
+pub fn bms_reach<N, IN, FN, FC, C>(
     start: N,
     successor_fn: FN,
     eval_fn: FC,
     branch_factor: usize,
     beam_width: usize,
-) -> BmsReachable<N, FN, FC, C>
+) -> Reachable<BmsContainer<N, FN, FC, C>>
 where
     FN: FnMut(&N) -> IN,
     IN: IntoIterator<Item = N>,
     FC: Fn(&N) -> Option<C>,
     C: Ord + Copy,
 {
-    BmsReachable {
-        to_see: vec![start].into(),
-        successor_fn,
-        eval_fn,
-        branch_factor,
-        beam_width,
-        pool: BinaryHeap::new(),
-    }
+    let container = BmsContainer::new(start, successor_fn, eval_fn, branch_factor, beam_width);
+    Reachable::new(container)
 }
 
 /// Find the leaf node with the lowest cost by using Beam Search

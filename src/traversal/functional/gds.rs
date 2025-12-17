@@ -2,19 +2,84 @@
 
 use std::time::Duration;
 
-use super::bms::bms;
+use super::{
+    common::{NodeContainer, Reachable},
+    find_best,
+};
+
+pub struct GdsContainer<N, FN, FC> {
+    next_node: Option<N>,
+    successor_fn: FN,
+    eval_fn: FC,
+}
+
+impl<N, IN, FN, FC, C> GdsContainer<N, FN, FC>
+where
+    FN: FnMut(&N) -> IN,
+    IN: IntoIterator<Item = N>,
+    FC: Fn(&N) -> Option<C>,
+    C: Ord + Copy,
+{
+    pub fn new(start: N, successor_fn: FN, eval_fn: FC) -> Self {
+        Self {
+            next_node: Some(start),
+            successor_fn,
+            eval_fn,
+        }
+    }
+}
+
+impl<N, IN, FN, FC, C> NodeContainer for GdsContainer<N, FN, FC>
+where
+    FN: FnMut(&N) -> IN,
+    IN: IntoIterator<Item = N>,
+    FC: Fn(&N) -> Option<C>,
+    C: Ord + Copy,
+{
+    type Node = N;
+
+    fn pop(&mut self) -> Option<Self::Node> {
+        self.next_node.take()
+    }
+
+    fn expand_and_push(&mut self, node: &Self::Node) {
+        let mut best_successor: Option<(C, N)> = None;
+        for s in (self.successor_fn)(node) {
+            if let Some(score) = (self.eval_fn)(&s) {
+                match &best_successor {
+                    Some((best_score, _)) => {
+                        if score < *best_score {
+                            best_successor = Some((score, s));
+                        }
+                    }
+                    None => {
+                        best_successor = Some((score, s));
+                    }
+                }
+            }
+        }
+
+        self.next_node = best_successor.map(|(_, n)| n);
+    }
+}
+
+/// Creates Greedy Search traversal iterator starting from the given node.
+pub fn gds_reach<N, IN, FN, FC, C>(
+    start: N,
+    successor_fn: FN,
+    eval_fn: FC,
+) -> Reachable<GdsContainer<N, FN, FC>>
+where
+    FN: FnMut(&N) -> IN,
+    IN: IntoIterator<Item = N>,
+    FC: Fn(&N) -> Option<C>,
+    C: Ord + Copy,
+{
+    let container = GdsContainer::new(start, successor_fn, eval_fn);
+    Reachable::new(container)
+}
 
 /// Find the leaf node with the lowest cost by using Greedy Search
-///
-/// - `start` is the start node.
-/// - `successor_fn` returns a list of successors for a given node.
-/// - `leaf_check_fn` checks if a node is a leaf or not
-/// - `cost_fn` returns the final cost of a leaf node
-/// - `eval_fn` returns the approximated cost of a given node to sort and select k-best
-/// - `max_ops` is the maximum number of search operations to perform
-/// - `time_limit` is the maximum duration allowed for the search operation
-///
-/// This function returns Some of a tuple of (cost, leaf node) if found, otherwise returns None
 pub fn gds<N, IN, FN, FC1, FC2, C, FR>(
     start: N,
     successor_fn: FN,
@@ -32,16 +97,14 @@ where
     C: Ord + Copy,
     FR: Fn(&N) -> bool,
 {
-    bms(
-        start,
-        successor_fn,
+    let mut res = gds_reach(start, successor_fn, eval_fn);
+    find_best(
+        &mut res,
         leaf_check_fn,
         cost_fn,
-        eval_fn,
-        usize::MAX,
-        1,
         max_ops,
         time_limit,
+        |_, _| {},
     )
 }
 
