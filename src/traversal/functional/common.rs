@@ -114,14 +114,64 @@ where
     .pop()
 }
 
-/// A trait representing a container for tree nodes used in traversal algorithms.
+/// A trait representing a container that holds the frontier of nodes during a traversal.
+///
+/// This trait is the core abstraction used by traversal drivers such as [`Reachable`].
+/// It decouples *how* nodes are stored and scheduled for visiting (stack, queue, priority
+/// queue, etc.) from the traversal logic itself.
+///
+/// # Traversal contract
+///
+/// A typical traversal loop using a `NodeContainer` behaves as follows:
+///
+/// 1. Repeatedly call [`pop`](NodeContainer::pop) to obtain the next node to visit.
+/// 2. For each node returned as `Some(node)`, call
+///    [`expand_and_push`](NodeContainer::expand_and_push) with a reference to that node.
+///    This method is responsible for discovering the node's children and inserting them
+///    into the container.
+/// 3. When [`pop`](NodeContainer::pop) returns `None`, the container is empty and the
+///    traversal is finished.
+///
+/// The [`Reachable`] iterator follows exactly this protocol in its [`Iterator::next`]
+/// implementation: it calls `pop()`, then (if successful) immediately calls
+/// `expand_and_push(&node)` with the popped node.
+///
+/// # Traversal order
+///
+/// The concrete `NodeContainer` implementation fully determines the traversal order:
+///
+/// - A stack-like container (LIFO) results in a depth-first traversal.
+/// - A queue-like container (FIFO) results in a breadth-first traversal.
+/// - A priority-based container can implement best-first, Dijkstra-like, or A*-like
+///   traversals, depending on the priority policy.
+///
+/// Implementations are expected to store nodes (and any associated metadata they need)
+/// internally and to be safe for repeated `pop` / `expand_and_push` cycles as described
+/// above.
 pub trait NodeContainer {
     /// The type of nodes stored in the container.
     type Node;
 
-    /// Pops a node from the container.
+    /// Removes and returns the next node to be visited from the container.
+    ///
+    /// This method is called by traversal drivers (such as [`Reachable`]) to obtain the
+    /// next node in the traversal. If it returns `Some(node)`, the driver will then call
+    /// [`expand_and_push`](NodeContainer::expand_and_push) with a reference to that same
+    /// node before visiting the next one.
+    ///
+    /// Returning `None` indicates that there are no more nodes to visit and that the
+    /// traversal is complete.
     fn pop(&mut self) -> Option<Self::Node>;
-    /// Expand the given node and push its children into the container.
+
+    /// Expands the given node and inserts its children into the container.
+    ///
+    /// This method is called once for each node immediately after it has been obtained
+    /// via [`pop`](NodeContainer::pop). Implementations should use the provided `node`
+    /// to determine which nodes are reachable from it and push those children into the
+    /// container according to their scheduling policy (e.g., LIFO, FIFO, priority).
+    ///
+    /// The `node` itself must not be consumed or modified by this method; it is passed
+    /// by shared reference so that it can also be yielded to the caller of the traversal.
     fn expand_and_push(&mut self, node: &Self::Node);
 }
 
