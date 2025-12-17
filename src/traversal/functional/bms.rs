@@ -8,7 +8,7 @@ use std::{
 
 use crate::utils::ScoredItem;
 
-use super::common::{NodeContainer, Reachable, find_best};
+use super::common::{find_best, NodeContainer, Reachable};
 
 /// A container for Beam Search traversal.
 pub struct BeamContainer<N, FN, FC, C: Ord> {
@@ -83,6 +83,22 @@ where
 }
 
 /// Creates a Beam Search traversal iterator starting from the given node.
+///
+/// This function initializes a lazy iterator that explores the tree using beam search, maintaining
+/// a fixed number of the most promising nodes (beam width) at each depth level. Nodes are selected
+/// based on an evaluation function, and only the top successors are kept.
+///
+/// # Parameters
+/// - `start`: The root node from which to begin the traversal.
+/// - `successor_fn`: A function that, given a node, returns an iterator over its successor nodes.
+/// - `eval_fn`: A function that evaluates a node for selection, returning `Some(score)` where lower
+///   scores are better, or `None` if the node cannot be evaluated.
+/// - `branch_factor`: The maximum number of successors to consider from each node.
+/// - `beam_width`: The maximum number of nodes to keep at each depth level.
+///
+/// # Returns
+/// An iterator that yields nodes reachable from the start node in beam search order.
+/// The iterator is lazy and will only compute successors as needed.
 pub fn bms_reach<N, IN, FN, FC, C>(
     start: N,
     successor_fn: FN,
@@ -234,7 +250,7 @@ mod test {
                 .iter()
                 .map(|c| (time_func(prev_city, *c), *c))
                 .enumerate()
-                .min_by_key(|x| x.1.0)
+                .min_by_key(|x| x.1 .0)
                 .unwrap();
 
             cities.remove(i);

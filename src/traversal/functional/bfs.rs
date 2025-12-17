@@ -47,7 +47,18 @@ where
     }
 }
 
-/// Breadth-First Search traversal iterator.
+/// Creates a Breadth-First Search traversal iterator starting from the given node.
+///
+/// This function initializes a lazy iterator that explores the tree level by level, yielding nodes
+/// in breadth-first order. This ensures that nodes closer to the root are visited before deeper nodes.
+///
+/// # Parameters
+/// - `start`: The root node from which to begin the traversal.
+/// - `successor_fn`: A function that, given a node, returns an iterator over its successor nodes.
+///
+/// # Returns
+/// An iterator that yields nodes reachable from the start node in breadth-first order.
+/// The iterator is lazy and will only compute successors as needed.
 pub fn bfs_reach<N, IN, FN>(start: N, successor_fn: FN) -> Reachable<BreadthFirstContainer<N, FN>>
 where
     IN: IntoIterator<Item = N>,

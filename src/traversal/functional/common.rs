@@ -175,7 +175,28 @@ pub trait NodeContainer {
     fn expand_and_push(&mut self, node: &Self::Node);
 }
 
-/// A Generic iterator that traverses nodes using a specified node container.
+/// An iterator that traverses a tree or graph by yielding nodes reachable from a starting point.
+///
+/// This struct implements the standard [`Iterator`] trait, producing nodes in an order determined
+/// by the underlying [`NodeContainer`]. It encapsulates the traversal logic, repeatedly calling
+/// [`NodeContainer::pop`] to obtain the next node and [`NodeContainer::expand_and_push`] to
+/// expand it, following the traversal contract defined by [`NodeContainer`].
+///
+/// The traversal order depends on the [`NodeContainer`] implementation:
+/// - Stack-based containers (e.g., depth-first) yield nodes in LIFO order.
+/// - Queue-based containers (e.g., breadth-first) yield nodes in FIFO order.
+/// - Priority-based containers yield nodes based on a priority function.
+///
+/// The [`NodeContainer`] trait abstracts the data structure used to manage the frontier of nodes
+/// to be visited, decoupling the traversal strategy from the iteration logic. This allows
+/// `Reachable` to work with various traversal algorithms by simply swapping the container type.
+///
+/// # Type Parameters
+/// - `C`: The type of the node container, which must implement [`NodeContainer`].
+///
+/// # Examples
+/// See the documentation of specific traversal functions like [`bfs_reach`] or [`dfs_reach`]
+/// for usage examples.
 pub struct Reachable<C> {
     to_see: C,
 }

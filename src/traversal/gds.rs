@@ -42,3 +42,5 @@ impl<N> Iterator for GreedyTraversal<N> {
         self.state.next()
     }
 }
+
+impl<N> FusedIterator for GreedyTraversal<N> {}

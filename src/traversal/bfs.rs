@@ -38,3 +38,5 @@ impl<N> Iterator for BreadthFirstTraversal<N> {
         self.state.next()
     }
 }
+
+impl<N> FusedIterator for BreadthFirstTraversal<N> {}

@@ -5,14 +5,10 @@ use crate::node::TreeNode;
 use super::functional;
 
 /// Trait defining the interface for tree traversal algorithms.
+/// This trait is an alias for `FusedIterator` over tree nodes.
 pub trait Traversal<N: TreeNode>: FusedIterator<Item = N> {}
 
-impl<T, N> Traversal<N> for T
-where
-    T: FusedIterator<Item = N> + ?Sized,
-    N: TreeNode,
-{
-}
+impl<N: TreeNode, T: FusedIterator<Item = N>> Traversal<N> for T {}
 
 /// Traverses the tree using the provided traversal iterator, collecting the best leaf nodes.
 ///
@@ -30,7 +26,7 @@ where
 /// # Returns
 /// A vector of tuples containing the cost and the node
 pub fn traverse<N: TreeNode>(
-    traversal: &mut impl FusedIterator<Item = N>,
+    traversal: &mut impl Traversal<N>,
     max_ops: usize,
     time_limit: Duration,
     queue_size: usize,
@@ -61,7 +57,7 @@ pub fn traverse<N: TreeNode>(
 /// # Returns
 /// The best leaf node and its cost, or `None` if no leaf is found.
 pub fn find_best<N: TreeNode>(
-    traversal: &mut impl FusedIterator<Item = N>,
+    traversal: &mut impl Traversal<N>,
     max_ops: usize,
     time_limit: Duration,
     callback: impl FnMut(usize, &N),

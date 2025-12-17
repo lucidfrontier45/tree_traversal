@@ -45,7 +45,18 @@ where
     }
 }
 
-/// Depth-First Search traversal iterator.
+/// Creates a Depth-First Search traversal iterator starting from the given node.
+///
+/// This function initializes a lazy iterator that explores the tree by going as deep as possible
+/// along each branch before backtracking, yielding nodes in depth-first order.
+///
+/// # Parameters
+/// - `start`: The root node from which to begin the traversal.
+/// - `successor_fn`: A function that, given a node, returns an iterator over its successor nodes.
+///
+/// # Returns
+/// An iterator that yields nodes reachable from the start node in depth-first order.
+/// The iterator is lazy and will only compute successors as needed.
 pub fn dfs_reach<N, IN, FN>(start: N, successor_fn: FN) -> Reachable<DepthFirstContainer<N, FN>>
 where
     IN: IntoIterator<Item = N>,

@@ -38,3 +38,5 @@ impl<N> Iterator for DepthFirstTraversal<N> {
         self.state.next()
     }
 }
+
+impl<N> FusedIterator for DepthFirstTraversal<N> {}

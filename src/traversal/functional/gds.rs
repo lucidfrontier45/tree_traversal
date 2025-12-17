@@ -54,7 +54,20 @@ where
     }
 }
 
-/// Creates Greedy Search traversal iterator starting from the given node.
+/// Creates a Greedy Search traversal iterator starting from the given node.
+///
+/// This function initializes a lazy iterator that explores the tree by always selecting the
+/// successor with the best (lowest) evaluation score, yielding nodes in greedy order.
+///
+/// # Parameters
+/// - `start`: The root node from which to begin the traversal.
+/// - `successor_fn`: A function that, given a node, returns an iterator over its successor nodes.
+/// - `eval_fn`: A function that evaluates a node, returning `Some(score)` where lower scores
+///   are better, or `None` if the node cannot be evaluated.
+///
+/// # Returns
+/// An iterator that yields nodes reachable from the start node in greedy order.
+/// The iterator is lazy and will only compute successors as needed.
 pub fn gds_reach<N, IN, FN, FC, C>(
     start: N,
     successor_fn: FN,

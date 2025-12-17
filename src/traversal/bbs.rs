@@ -45,3 +45,5 @@ impl<N> Iterator for BranchAndBoundTraversal<N> {
         self.state.next()
     }
 }
+
+impl<N> FusedIterator for BranchAndBoundTraversal<N> {}

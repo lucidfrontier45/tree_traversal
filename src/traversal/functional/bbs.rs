@@ -78,6 +78,23 @@ where
 }
 
 /// Creates a Branch-and-Bound traversal iterator starting from the given node.
+///
+/// This function initializes a lazy iterator that explores the tree using the Branch-and-Bound algorithm,
+/// pruning branches based on lower bounds and the current best cost. Nodes are yielded in an order that
+/// prioritizes promising paths with lower estimated costs.
+///
+/// # Parameters
+/// - `start`: The root node from which to begin the traversal.
+/// - `successor_fn`: A function that, given a node, returns an iterator over its successor nodes.
+/// - `leaf_check_fn`: A function that determines whether a given node is a leaf (terminal) node.
+/// - `cost_fn`: A function that computes the cost of a leaf node, returning `Some(cost)` if the cost
+///   can be determined, or `None` otherwise.
+/// - `lower_bound_fn`: A function that provides a lower bound on the cost for a given node, used
+///   for pruning suboptimal branches.
+///
+/// # Returns
+/// An iterator that yields nodes reachable from the start node in Branch-and-Bound order.
+/// The iterator is lazy and will only compute successors as needed.
 pub fn bbs_reach<C, N, IN, FN, FL, FC, FC2>(
     start: N,
     successor_fn: FN,
