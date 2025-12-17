@@ -7,19 +7,21 @@ use super::{
     find_best,
 };
 
-pub struct GdsContainer<N, FN, FC> {
+/// A container for Greedy traversal.
+pub struct GreedyContainer<N, FN, FC> {
     next_node: Option<N>,
     successor_fn: FN,
     eval_fn: FC,
 }
 
-impl<N, IN, FN, FC, C> GdsContainer<N, FN, FC>
+impl<N, IN, FN, FC, C> GreedyContainer<N, FN, FC>
 where
     FN: FnMut(&N) -> IN,
     IN: IntoIterator<Item = N>,
     FC: Fn(&N) -> Option<C>,
     C: Ord + Copy,
 {
+    /// Creates a new `GreedyContainer` with the given parameters.
     pub fn new(start: N, successor_fn: FN, eval_fn: FC) -> Self {
         Self {
             next_node: Some(start),
@@ -29,7 +31,7 @@ where
     }
 }
 
-impl<N, IN, FN, FC, C> NodeContainer for GdsContainer<N, FN, FC>
+impl<N, IN, FN, FC, C> NodeContainer for GreedyContainer<N, FN, FC>
 where
     FN: FnMut(&N) -> IN,
     IN: IntoIterator<Item = N>,
@@ -68,14 +70,14 @@ pub fn gds_reach<N, IN, FN, FC, C>(
     start: N,
     successor_fn: FN,
     eval_fn: FC,
-) -> Reachable<GdsContainer<N, FN, FC>>
+) -> Reachable<GreedyContainer<N, FN, FC>>
 where
     FN: FnMut(&N) -> IN,
     IN: IntoIterator<Item = N>,
     FC: Fn(&N) -> Option<C>,
     C: Ord + Copy,
 {
-    let container = GdsContainer::new(start, successor_fn, eval_fn);
+    let container = GreedyContainer::new(start, successor_fn, eval_fn);
     Reachable::new(container)
 }
 

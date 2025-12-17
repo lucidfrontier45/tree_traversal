@@ -7,7 +7,8 @@ use super::{
     find_best,
 };
 
-pub struct BbsContainer<C, N, FN, FL, FC, FC2> {
+/// A container for Branch-and-Bound traversal.
+pub struct BranchAndBoundContainer<C, N, FN, FL, FC, FC2> {
     to_see: Vec<N>,
     successor_fn: FN,
     leaf_check_fn: FL,
@@ -16,7 +17,7 @@ pub struct BbsContainer<C, N, FN, FL, FC, FC2> {
     current_best_cost: Option<C>,
 }
 
-impl<C, N, IN, FN, FL, FC, FC2> BbsContainer<C, N, FN, FL, FC, FC2>
+impl<C, N, IN, FN, FL, FC, FC2> BranchAndBoundContainer<C, N, FN, FL, FC, FC2>
 where
     C: Ord + Copy,
     FN: FnMut(&N) -> IN,
@@ -25,12 +26,13 @@ where
     FC: Fn(&N) -> Option<C>,
     FC2: Fn(&N) -> Option<C>,
 {
+    /// Creates a new `BranchAndBoundContainer` with the given parameters.
     pub fn new(
+        start: N,
         successor_fn: FN,
         leaf_check_fn: FL,
         cost_fn: FC,
         lower_bound_fn: FC2,
-        start: N,
     ) -> Self {
         Self {
             to_see: vec![start],
@@ -43,7 +45,7 @@ where
     }
 }
 
-impl<C, N, FN, FL, FC, FC2, IN> NodeContainer for BbsContainer<C, N, FN, FL, FC, FC2>
+impl<C, N, FN, FL, FC, FC2, IN> NodeContainer for BranchAndBoundContainer<C, N, FN, FL, FC, FC2>
 where
     C: Ord + Copy,
     FN: FnMut(&N) -> IN,
@@ -82,7 +84,7 @@ pub fn bbs_reach<C, N, IN, FN, FL, FC, FC2>(
     leaf_check_fn: FL,
     cost_fn: FC,
     lower_bound_fn: FC2,
-) -> Reachable<BbsContainer<C, N, FN, FL, FC, FC2>>
+) -> Reachable<BranchAndBoundContainer<C, N, FN, FL, FC, FC2>>
 where
     C: Ord + Copy,
     FN: FnMut(&N) -> IN,
@@ -91,7 +93,8 @@ where
     FL: Fn(&N) -> bool,
     FC2: Fn(&N) -> Option<C>,
 {
-    let container = BbsContainer::new(successor_fn, leaf_check_fn, cost_fn, lower_bound_fn, start);
+    let container =
+        BranchAndBoundContainer::new(start, successor_fn, leaf_check_fn, cost_fn, lower_bound_fn);
     Reachable::new(container)
 }
 

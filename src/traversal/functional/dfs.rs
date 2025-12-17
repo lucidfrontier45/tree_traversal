@@ -7,25 +7,27 @@ use super::{
     find_best,
 };
 
-pub struct DfsContainer<N, FN> {
+/// A container for Depth-First traversal.
+pub struct DepthFirstContainer<N, FN> {
     to_see: Vec<N>,
     successor_fn: FN,
 }
 
-impl<N, FN, IN> DfsContainer<N, FN>
+impl<N, FN, IN> DepthFirstContainer<N, FN>
 where
     FN: FnMut(&N) -> IN,
     IN: IntoIterator<Item = N>,
 {
-    pub fn new(successor_fn: FN) -> Self {
+    /// Creates a new `DepthFirstContainer` with the given successor function.
+    pub fn new(start: N, successor_fn: FN) -> Self {
         Self {
-            to_see: Vec::new(),
+            to_see: vec![start],
             successor_fn,
         }
     }
 }
 
-impl<N, FN, IN> NodeContainer for DfsContainer<N, FN>
+impl<N, FN, IN> NodeContainer for DepthFirstContainer<N, FN>
 where
     FN: FnMut(&N) -> IN,
     IN: IntoIterator<Item = N>,
@@ -43,13 +45,13 @@ where
     }
 }
 
-pub fn dfs_reach<N, IN, FN>(start: N, successor_fn: FN) -> Reachable<DfsContainer<N, FN>>
+/// Depth-First Search traversal iterator.
+pub fn dfs_reach<N, IN, FN>(start: N, successor_fn: FN) -> Reachable<DepthFirstContainer<N, FN>>
 where
     IN: IntoIterator<Item = N>,
     FN: FnMut(&N) -> IN,
 {
-    let mut container = DfsContainer::new(successor_fn);
-    container.to_see.push(start);
+    let container = DepthFirstContainer::new(start, successor_fn);
     Reachable::new(container)
 }
 

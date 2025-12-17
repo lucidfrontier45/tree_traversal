@@ -125,11 +125,13 @@ pub trait NodeContainer {
     fn expand_and_push(&mut self, node: &Self::Node);
 }
 
+/// A Generic iterator that traverses nodes using a specified node container.
 pub struct Reachable<C> {
     to_see: C,
 }
 
 impl<C> Reachable<C> {
+    /// Creates a new `Reachable` iterator with the given node container.
     pub fn new(to_see: C) -> Self {
         Self { to_see }
     }

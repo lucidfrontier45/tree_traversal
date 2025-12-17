@@ -7,25 +7,29 @@ use super::{
     find_best,
 };
 
-pub struct BfsContainer<N, FN> {
+/// A container for Breadth-First traversal.
+pub struct BreadthFirstContainer<N, FN> {
     to_see: VecDeque<N>,
     successor_fn: FN,
 }
 
-impl<N, FN, IN> BfsContainer<N, FN>
+impl<N, FN, IN> BreadthFirstContainer<N, FN>
 where
     FN: FnMut(&N) -> IN,
     IN: IntoIterator<Item = N>,
 {
-    pub fn new(successor_fn: FN) -> Self {
+    /// Creates a new `BreadthFirstContainer` with the given successor function.
+    pub fn new(start: N, successor_fn: FN) -> Self {
+        let mut to_see = VecDeque::new();
+        to_see.push_back(start);
         Self {
-            to_see: VecDeque::new(),
+            to_see,
             successor_fn,
         }
     }
 }
 
-impl<N, FN, IN> NodeContainer for BfsContainer<N, FN>
+impl<N, FN, IN> NodeContainer for BreadthFirstContainer<N, FN>
 where
     FN: FnMut(&N) -> IN,
     IN: IntoIterator<Item = N>,
@@ -43,13 +47,13 @@ where
     }
 }
 
-pub fn bfs_reach<N, IN, FN>(start: N, successor_fn: FN) -> Reachable<BfsContainer<N, FN>>
+/// Breadth-First Search traversal iterator.
+pub fn bfs_reach<N, IN, FN>(start: N, successor_fn: FN) -> Reachable<BreadthFirstContainer<N, FN>>
 where
     IN: IntoIterator<Item = N>,
     FN: FnMut(&N) -> IN,
 {
-    let mut container = BfsContainer::new(successor_fn);
-    container.to_see.push_back(start);
+    let container = BreadthFirstContainer::new(start, successor_fn);
     Reachable::new(container)
 }
 

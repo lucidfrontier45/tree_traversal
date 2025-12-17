@@ -2,7 +2,7 @@ use std::iter::FusedIterator;
 
 use crate::node::{Approximate, TreeNode};
 
-use super::functional::bms_reach;
+use super::functional::gds_reach;
 
 /// Greedy traversal implementation.
 pub struct GreedyTraversal<N> {
@@ -24,12 +24,10 @@ where
     /// # Returns
     /// A new `GreedyTraversal` iterator.
     pub fn new(root_node: N) -> Self {
-        let state = bms_reach(
+        let state = gds_reach(
             root_node,
             |n: &N| n.generate_child_nodes(),
             |n: &N| n.cost_approx(),
-            usize::MAX,
-            1,
         );
         Self {
             state: Box::new(state),

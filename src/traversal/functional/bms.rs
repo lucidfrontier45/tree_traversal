@@ -10,8 +10,8 @@ use crate::utils::ScoredItem;
 
 use super::common::{NodeContainer, Reachable, find_best};
 
-/// Container used by beam search to drive a `Reachable` iterator.
-pub struct BmsContainer<N, FN, FC, C: Ord> {
+/// A container for Beam Search traversal.
+pub struct BeamContainer<N, FN, FC, C: Ord> {
     to_see: VecDeque<N>,
     successor_fn: FN,
     eval_fn: FC,
@@ -20,13 +20,14 @@ pub struct BmsContainer<N, FN, FC, C: Ord> {
     pool: BinaryHeap<ScoredItem<Reverse<C>, N>>,
 }
 
-impl<N, IN, FN, FC, C> BmsContainer<N, FN, FC, C>
+impl<N, IN, FN, FC, C> BeamContainer<N, FN, FC, C>
 where
     FN: FnMut(&N) -> IN,
     IN: IntoIterator<Item = N>,
     FC: Fn(&N) -> Option<C>,
     C: Ord + Copy,
 {
+    /// Creates a new `BeamContainer` with the given parameters.
     pub fn new(
         start: N,
         successor_fn: FN,
@@ -45,7 +46,7 @@ where
     }
 }
 
-impl<N, IN, FN, FC, C> NodeContainer for BmsContainer<N, FN, FC, C>
+impl<N, IN, FN, FC, C> NodeContainer for BeamContainer<N, FN, FC, C>
 where
     FN: FnMut(&N) -> IN,
     IN: IntoIterator<Item = N>,
@@ -88,14 +89,14 @@ pub fn bms_reach<N, IN, FN, FC, C>(
     eval_fn: FC,
     branch_factor: usize,
     beam_width: usize,
-) -> Reachable<BmsContainer<N, FN, FC, C>>
+) -> Reachable<BeamContainer<N, FN, FC, C>>
 where
     FN: FnMut(&N) -> IN,
     IN: IntoIterator<Item = N>,
     FC: Fn(&N) -> Option<C>,
     C: Ord + Copy,
 {
-    let container = BmsContainer::new(start, successor_fn, eval_fn, branch_factor, beam_width);
+    let container = BeamContainer::new(start, successor_fn, eval_fn, branch_factor, beam_width);
     Reachable::new(container)
 }
 

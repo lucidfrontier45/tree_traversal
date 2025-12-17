@@ -2,7 +2,7 @@ use std::iter::FusedIterator;
 
 use crate::node::TreeNode;
 
-use super::functional::bbs_reach;
+use super::functional::dfs_reach;
 
 /// Depth-First traversal implementation.
 pub struct DepthFirstTraversal<N> {
@@ -11,7 +11,7 @@ pub struct DepthFirstTraversal<N> {
 
 impl<C, N> DepthFirstTraversal<N>
 where
-    C: Default + Copy + Ord + 'static,
+    C: Copy + Ord + 'static,
     N: TreeNode<Cost = C> + 'static,
 {
     /// Creates a new `DepthFirstTraversal` instance that performs a depth-first search starting from the given root node.
@@ -24,13 +24,7 @@ where
     /// # Returns
     /// A new `DepthFirstTraversal` iterator.
     pub fn new(root_node: N) -> Self {
-        let state = bbs_reach(
-            root_node,
-            |n: &N| n.generate_child_nodes(),
-            |_: &N| false,
-            |_: &N| None,
-            |_: &N| Some(C::default()),
-        );
+        let state = dfs_reach(root_node, |n: &N| n.generate_child_nodes());
         Self {
             state: Box::new(state),
         }
