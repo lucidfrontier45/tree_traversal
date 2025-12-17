@@ -1,21 +1,35 @@
 # Style and Conventions
 
+## Documentation
+- `#![forbid(missing_docs)]`: All public items must have documentation comments.
+- Use `///` for public items, `//!` for modules.
+- Include parameters, returns, examples where appropriate.
+
+## Linting
+- Clippy is used with some allowances:
+  - `clippy::non_ascii_literal`: Allowed for non-ASCII literals.
+  - `clippy::module_name_repetitions`: Allowed for module name repetitions.
+
 ## Code Style
+- Follows standard Rust conventions.
+- Uses generics extensively for type safety.
+- Traits like `TreeNode` for abstraction.
+- Functional programming style in functional API.
+- OOP style with iterators in traversal structs.
 
-- **Naming**: Use snake_case for functions, variables, and modules. PascalCase for types and structs.
-- **Documentation**: All public functions and modules must have documentation comments (`//!` for modules, `///` for items). The `#![forbid(missing_docs)]` lint enforces this.
-- **Linting**: Allows `clippy::non_ascii_literal` and `clippy::module_name_repetitions`.
-- **Formatting**: Use `cargo fmt` for consistent formatting.
-- **Imports**: Use `use` statements at the top of files.
-- **Generics**: Use descriptive generic names like `N` for Node, `C` for Cost, etc., with trait bounds.
-- **Error Handling**: Functions return `Option` for results, with `None` if not found.
-- **Testing**: Include unit tests in `#[cfg(test)]` modules within the same file.
-- **Examples**: Use closures for functions like `successor_fn`, `cost_fn`, etc.
-- **Performance**: Algorithms are designed for optimization, using bounded types from `num_traits`.
-- **Module**: Never use `mod.rs` style.
+## Naming
+- Modules: snake_case (e.g., `traversal`, `functional`).
+- Functions/Methods: snake_case.
+- Types/Structs: PascalCase.
+- Constants: SCREAMING_SNAKE_CASE.
 
-## Design Patterns
+## Error Handling
+- Uses `Result` and `Option` appropriately.
+- Algorithms return `Option` or `Result` based on success.
 
-- **Functional Programming**: Heavy use of closures and iterators.
-- **Tree Traversal**: Standard algorithms adapted for finding optimal leaves.
-- **API Design**: Inspired by `pathfinding` crate, with start node, successor function, cost function, etc.
+## Testing
+- Examples in `examples/` directory for demonstration.
+- Likely uses `cargo test` for unit tests (though not visible in structure).
+
+## Formatting
+- Uses `rustfmt` for code formatting.

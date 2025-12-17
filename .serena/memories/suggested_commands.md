@@ -1,32 +1,35 @@
 # Suggested Commands
 
-## Development Commands
+## Building
+- `cargo build`: Compile the library.
+- `cargo build --release`: Compile optimized release build.
 
-- `cargo build`: Build the project.
+## Testing
 - `cargo test`: Run all tests.
-- `cargo run --example <example_name>`: Run an example, e.g., `cargo run --example bbs_knapsack_problem`.
+- `cargo test --doc`: Run documentation tests.
+- `cargo test --example <name>`: Run specific example.
+
+## Running Examples
+- `cargo run --example bbs_knapsack_problem`: Run the BBS knapsack example.
+- `cargo run --example bbs_knapsack_problem_oop`: Run the OOP version.
+
+## Linting and Formatting
+- `cargo clippy`: Run Clippy linter.
+- `cargo fmt`: Format code with rustfmt.
+- `cargo fmt --check`: Check formatting without changing files.
+
+## Documentation
 - `cargo doc`: Generate documentation.
 - `cargo doc --open`: Generate and open documentation in browser.
 
-## Code Quality
-
-- `cargo fmt`: Format the code.
-- `cargo clippy`: Lint the code for potential issues.
-
-## Utility Commands
-
-- `cargo check`: Check for compilation errors without building.
+## Other
+- `cargo check`: Check code without building.
 - `cargo clean`: Clean build artifacts.
-- `cargo update`: Update dependencies.
 
-## System Commands (Linux, zsh)
-
-- `ls -la`: List files with details.
-- `cd <dir>`: Change directory.
-- `grep <pattern> <file>`: Search for pattern in file.
-- `find <dir> -name <pattern>`: Find files by name.
-- `git status`: Check git status.
-- `git add .`: Stage all changes.
-- `git commit -m "message"`: Commit changes.
-- `git push`: Push to remote.
-- `git pull`: Pull from remote.
+## Windows Specific
+Since the system is Windows, use PowerShell (pwsh) for terminal commands.
+- `ls` equivalent: `dir` or `Get-ChildItem`
+- `cd`: `cd` or `Set-Location`
+- `grep`: `Select-String` or `findstr`
+- `find`: `Get-ChildItem -Recurse`
+- Git commands work the same: `git status`, `git add`, etc.
