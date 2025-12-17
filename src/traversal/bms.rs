@@ -1,6 +1,6 @@
 use std::iter::FusedIterator;
 
-use crate::node::{Approximate, TreeNode};
+use crate::node::{Priority, TreeNode};
 
 use super::functional::bms_reach;
 
@@ -12,7 +12,7 @@ pub struct BeamTraversal<N> {
 impl<C, N> BeamTraversal<N>
 where
     C: Copy + Ord + 'static,
-    N: TreeNode<Cost = C> + Approximate<Cost = C> + 'static,
+    N: TreeNode<Cost = C> + Priority + 'static,
 {
     /// Creates a new `BeamTraversal` instance that performs a beam search starting from the given root node.
     ///
@@ -30,7 +30,7 @@ where
         let state = bms_reach(
             root_node,
             |n: &N| n.generate_child_nodes(),
-            |n: &N| n.cost_approx(),
+            |n: &N| n.priority(),
             branch_factor,
             beam_width,
         );

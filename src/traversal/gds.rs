@@ -1,6 +1,6 @@
 use std::iter::FusedIterator;
 
-use crate::node::{Approximate, TreeNode};
+use crate::node::{Priority, TreeNode};
 
 use super::functional::gds_reach;
 
@@ -12,7 +12,7 @@ pub struct GreedyTraversal<N> {
 impl<C, N> GreedyTraversal<N>
 where
     C: Copy + Ord + 'static,
-    N: TreeNode<Cost = C> + Approximate<Cost = C> + 'static,
+    N: TreeNode<Cost = C> + Priority + 'static,
 {
     /// Creates a new `GreedyTraversal` instance that performs a greedy search starting from the given root node.
     ///
@@ -27,7 +27,7 @@ where
         let state = gds_reach(
             root_node,
             |n: &N| n.generate_child_nodes(),
-            |n: &N| n.cost_approx(),
+            |n: &N| n.priority(),
         );
         Self {
             state: Box::new(state),

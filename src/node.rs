@@ -24,12 +24,14 @@ pub trait LowerBound {
     fn cost_lb(&self) -> Option<Self::Cost>;
 }
 
-/// Trait defining the approximate cost functionality for tree nodes.
-pub trait Approximate {
-    /// The type representing the cost associated with the node.
-    type Cost: Copy + Ord;
+/// Trait defining the priority functionality for tree nodes.
+/// This is useful for greedy or best-first search algorithms.
+pub trait Priority {
+    /// The type representing the priority value associated with the node.
+    /// Higher priority values indicate more favorable nodes.
+    type Value: Copy + Ord;
 
-    /// Returns the approximate cost associated with the node, if any.
+    /// Returns the priority associated with the node, if any.
     /// If the current node does not satisfy problem constraints, returns None.
-    fn cost_approx(&self) -> Option<Self::Cost>;
+    fn priority(&self) -> Option<Self::Value>;
 }

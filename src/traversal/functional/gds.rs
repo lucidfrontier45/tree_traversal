@@ -8,35 +8,35 @@ use super::{
 };
 
 /// A container for Greedy traversal.
-pub struct GreedyContainer<N, FN, FC> {
+pub struct GreedyContainer<N, FN, FP> {
     next_node: Option<N>,
     successor_fn: FN,
-    eval_fn: FC,
+    priority_fn: FP,
 }
 
-impl<N, IN, FN, FC, C> GreedyContainer<N, FN, FC>
+impl<N, IN, FN, FP, P> GreedyContainer<N, FN, FP>
 where
     FN: FnMut(&N) -> IN,
     IN: IntoIterator<Item = N>,
-    FC: Fn(&N) -> Option<C>,
-    C: Ord + Copy,
+    FP: Fn(&N) -> Option<P>,
+    P: Ord + Copy,
 {
     /// Creates a new `GreedyContainer` with the given parameters.
-    pub fn new(start: N, successor_fn: FN, eval_fn: FC) -> Self {
+    pub fn new(start: N, successor_fn: FN, priority_fn: FP) -> Self {
         Self {
             next_node: Some(start),
             successor_fn,
-            eval_fn,
+            priority_fn,
         }
     }
 }
 
-impl<N, IN, FN, FC, C> NodeContainer for GreedyContainer<N, FN, FC>
+impl<N, IN, FN, FP, P> NodeContainer for GreedyContainer<N, FN, FP>
 where
     FN: FnMut(&N) -> IN,
     IN: IntoIterator<Item = N>,
-    FC: Fn(&N) -> Option<C>,
-    C: Ord + Copy,
+    FP: Fn(&N) -> Option<P>,
+    P: Ord + Copy,
 {
     type Node = N;
 
@@ -47,8 +47,8 @@ where
     fn expand_and_push(&mut self, node: &Self::Node) {
         let best_successor = (self.successor_fn)(node)
             .into_iter()
-            .filter_map(|s| (self.eval_fn)(&s).map(|score| (score, s)))
-            .min_by_key(|(score, _)| *score);
+            .filter_map(|s| (self.priority_fn)(&s).map(|priority| (priority, s)))
+            .max_by_key(|(priority, _)| *priority);
 
         self.next_node = best_successor.map(|(_, n)| n);
     }
@@ -57,51 +57,52 @@ where
 /// Creates a Greedy Search traversal iterator starting from the given node.
 ///
 /// This function initializes a lazy iterator that explores the tree by always selecting the
-/// successor with the best (lowest) evaluation score, yielding nodes in greedy order.
+/// successor with the best (highest) priority, yielding nodes in greedy order.
 ///
 /// # Parameters
 /// - `start`: The root node from which to begin the traversal.
 /// - `successor_fn`: A function that, given a node, returns an iterator over its successor nodes.
-/// - `eval_fn`: A function that evaluates a node, returning `Some(score)` where lower scores
+/// - `priority_fn`: A function that evaluates a node, returning `Some(priority)` where higher priorities
 ///   are better, or `None` if the node cannot be evaluated.
 ///
 /// # Returns
 /// An iterator that yields nodes reachable from the start node in greedy order.
 /// The iterator is lazy and will only compute successors as needed.
-pub fn gds_reach<N, IN, FN, FC, C>(
+pub fn gds_reach<N, IN, FN, FP, P>(
     start: N,
     successor_fn: FN,
-    eval_fn: FC,
-) -> Reachable<GreedyContainer<N, FN, FC>>
+    priority_fn: FP,
+) -> Reachable<GreedyContainer<N, FN, FP>>
 where
     FN: FnMut(&N) -> IN,
     IN: IntoIterator<Item = N>,
-    FC: Fn(&N) -> Option<C>,
-    C: Ord + Copy,
+    FP: Fn(&N) -> Option<P>,
+    P: Ord + Copy,
 {
-    let container = GreedyContainer::new(start, successor_fn, eval_fn);
+    let container = GreedyContainer::new(start, successor_fn, priority_fn);
     Reachable::new(container)
 }
 
 /// Find the leaf node with the lowest cost by using Greedy Search
-pub fn gds<N, IN, FN, FC1, FC2, C, FR>(
+pub fn gds<N, IN, FN, FC, FP, C, P, FR>(
     start: N,
     successor_fn: FN,
     leaf_check_fn: FR,
-    cost_fn: FC2,
-    eval_fn: FC1,
+    cost_fn: FC,
+    priority_fn: FP,
     max_ops: usize,
     time_limit: Duration,
 ) -> Option<(C, N)>
 where
     IN: IntoIterator<Item = N>,
     FN: FnMut(&N) -> IN,
-    FC1: Fn(&N) -> Option<C>,
-    FC2: Fn(&N) -> Option<C>,
+    FC: Fn(&N) -> Option<C>,
+    FP: Fn(&N) -> Option<P>,
     C: Ord + Copy,
+    P: Ord + Copy,
     FR: Fn(&N) -> bool,
 {
-    let mut res = gds_reach(start, successor_fn, eval_fn);
+    let mut res = gds_reach(start, successor_fn, priority_fn);
     find_best(
         &mut res,
         leaf_check_fn,
@@ -114,6 +115,8 @@ where
 
 #[cfg(test)]
 mod test {
+
+    use std::cmp::Reverse;
 
     use super::gds;
 
@@ -240,7 +243,7 @@ mod test {
         let time_func = |p: CityId, c: CityId| distance_matrix[p][c];
 
         let successor_fn = |n: &Node| n.generate_child_nodes(&time_func);
-        let eval_fn = |n: &Node| Some(n.t);
+        let priority_fn = |n: &Node| Some(Reverse(n.t));
 
         let cost_fn = |n: &Node| Some(n.t + time_func(n.city, start));
         let leaf_check_fn = |n: &Node| n.is_leaf();
@@ -253,7 +256,7 @@ mod test {
             successor_fn,
             leaf_check_fn,
             cost_fn,
-            eval_fn,
+            priority_fn,
             max_ops,
             time_limit,
         )
