@@ -2,29 +2,29 @@ use std::iter::FusedIterator;
 
 use crate::node::{Priority, TreeNode};
 
-use super::functional::gds_reach;
+use super::functional::pfs_reach;
 
-/// Greedy traversal implementation.
-pub struct GreedyTraversal<N> {
+/// Priority-First traversal implementation.
+pub struct PriorityFirstTraversal<N> {
     state: Box<dyn FusedIterator<Item = N>>,
 }
 
-impl<C, N> GreedyTraversal<N>
+impl<C, N> PriorityFirstTraversal<N>
 where
     C: Copy + Ord + 'static,
     N: TreeNode<Cost = C> + Priority + 'static,
 {
-    /// Creates a new `GreedyTraversal` instance that performs a greedy search starting from the given root node.
+    /// Creates a new `PriorityFirstTraversal` instance that performs a priority-first search starting from the given root node.
     ///
-    /// Greedy search always chooses the locally optimal choice at each step, aiming for an approximate solution.
+    /// Priority-first search explores nodes based on their priority values, always selecting the highest priority node first.
     ///
     /// # Parameters
     /// - `root_node`: The starting node for the traversal.
     ///
     /// # Returns
-    /// A new `GreedyTraversal` iterator.
+    /// A new `PriorityFirstTraversal` iterator.
     pub fn new(root_node: N) -> Self {
-        let state = gds_reach(
+        let state = pfs_reach(
             root_node,
             |n: &N| n.generate_child_nodes(),
             |n: &N| n.priority(),
@@ -35,7 +35,7 @@ where
     }
 }
 
-impl<N> Iterator for GreedyTraversal<N> {
+impl<N> Iterator for PriorityFirstTraversal<N> {
     type Item = N;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -43,4 +43,4 @@ impl<N> Iterator for GreedyTraversal<N> {
     }
 }
 
-impl<N> FusedIterator for GreedyTraversal<N> {}
+impl<N> FusedIterator for PriorityFirstTraversal<N> {}

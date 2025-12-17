@@ -1,10 +1,14 @@
 //! Branch and Bound Search
 
-use std::{iter::FusedIterator, time::Duration};
+use std::time::Duration;
 
-use super::common::find_best;
-/// Struct returned by [`bbs_reach`]
-pub struct BbsReachable<C, N, FN, FL, FC, FC2> {
+use super::{
+    common::{NodeContainer, Reachable},
+    find_best,
+};
+
+/// A container for Branch-and-Bound traversal.
+pub struct BranchAndBoundContainer<C, N, FN, FL, FC, FC2> {
     to_see: Vec<N>,
     successor_fn: FN,
     leaf_check_fn: FL,
@@ -13,7 +17,7 @@ pub struct BbsReachable<C, N, FN, FL, FC, FC2> {
     current_best_cost: Option<C>,
 }
 
-impl<C, N, FN, FL, FC, FC2, IN> Iterator for BbsReachable<C, N, FN, FL, FC, FC2>
+impl<C, N, IN, FN, FL, FC, FC2> BranchAndBoundContainer<C, N, FN, FL, FC, FC2>
 where
     C: Ord + Copy,
     FN: FnMut(&N) -> IN,
@@ -22,52 +26,82 @@ where
     FC: Fn(&N) -> Option<C>,
     FC2: Fn(&N) -> Option<C>,
 {
-    type Item = N;
+    /// Creates a new `BranchAndBoundContainer` with the given parameters.
+    pub fn new(
+        start: N,
+        successor_fn: FN,
+        leaf_check_fn: FL,
+        cost_fn: FC,
+        lower_bound_fn: FC2,
+    ) -> Self {
+        Self {
+            to_see: vec![start],
+            successor_fn,
+            leaf_check_fn,
+            cost_fn,
+            lower_bound_fn,
+            current_best_cost: None,
+        }
+    }
+}
 
-    fn next(&mut self) -> Option<Self::Item> {
-        let node = self.to_see.pop()?;
+impl<C, N, FN, FL, FC, FC2, IN> NodeContainer for BranchAndBoundContainer<C, N, FN, FL, FC, FC2>
+where
+    C: Ord + Copy,
+    FN: FnMut(&N) -> IN,
+    IN: IntoIterator<Item = N>,
+    FL: Fn(&N) -> bool,
+    FC: Fn(&N) -> Option<C>,
+    FC2: Fn(&N) -> Option<C>,
+{
+    type Node = N;
 
-        if (self.leaf_check_fn)(&node) {
-            // if current node is leaf, check cost
-            if let Some(cost) = (self.cost_fn)(&node)
+    fn pop(&mut self) -> Option<Self::Node> {
+        self.to_see.pop()
+    }
+
+    fn expand_and_push(&mut self, node: &Self::Node) {
+        if (self.leaf_check_fn)(node) {
+            if let Some(cost) = (self.cost_fn)(node)
                 && self.current_best_cost.is_none_or(|c| c > cost)
             {
                 self.current_best_cost = Some(cost);
             }
-        } else {
-            // if current node is not leaf, check lower bound and expand
-            if let Some(lb) = (self.lower_bound_fn)(&node)
-                && self.current_best_cost.is_none_or(|c| c > lb)
-            {
-                for s in (self.successor_fn)(&node) {
-                    self.to_see.push(s);
-                }
+        } else if let Some(lb) = (self.lower_bound_fn)(node)
+            && self.current_best_cost.is_none_or(|c| c > lb)
+        {
+            for s in (self.successor_fn)(node) {
+                self.to_see.push(s);
             }
         }
-
-        Some(node)
     }
 }
 
-impl<C, N, FN, FL, FC, FC2, IN> FusedIterator for BbsReachable<C, N, FN, FL, FC, FC2>
-where
-    C: Ord + Copy,
-    FN: FnMut(&N) -> IN,
-    IN: IntoIterator<Item = N>,
-    FL: Fn(&N) -> bool,
-    FC: Fn(&N) -> Option<C>,
-    FC2: Fn(&N) -> Option<C>,
-{
-}
-
-/// Use Branch and Bound technique to efficiently traverse a tree
-pub fn bbs_reach<C, N, FN, FL, FC, FC2, IN>(
+/// Creates a Branch-and-Bound traversal iterator starting from the given node.
+///
+/// This function initializes a lazy iterator that explores the tree using the Branch-and-Bound algorithm,
+/// pruning branches based on lower bounds and the current best cost. Nodes are yielded in an order that
+/// prioritizes promising paths with lower estimated costs.
+///
+/// # Parameters
+/// - `start`: The root node from which to begin the traversal.
+/// - `successor_fn`: A function that, given a node, returns an iterator over its successor nodes.
+/// - `leaf_check_fn`: A function that determines whether a given node is a leaf (terminal) node.
+/// - `cost_fn`: A function that computes the cost of a leaf node, returning `Some(cost)` if the cost
+///   can be determined, or `None` otherwise.
+/// - `lower_bound_fn`: A function that provides a lower bound on the cost for a given node, used
+///   for pruning suboptimal branches.
+///
+/// # Returns
+/// An iterator that yields nodes reachable from the start node in Branch-and-Bound order.
+/// The iterator is lazy and will only compute successors as needed.
+pub fn bbs_reach<C, N, IN, FN, FL, FC, FC2>(
     start: N,
     successor_fn: FN,
     leaf_check_fn: FL,
     cost_fn: FC,
     lower_bound_fn: FC2,
-) -> BbsReachable<C, N, FN, FL, FC, FC2>
+) -> Reachable<BranchAndBoundContainer<C, N, FN, FL, FC, FC2>>
 where
     C: Ord + Copy,
     FN: FnMut(&N) -> IN,
@@ -76,14 +110,9 @@ where
     FL: Fn(&N) -> bool,
     FC2: Fn(&N) -> Option<C>,
 {
-    BbsReachable {
-        to_see: vec![start],
-        successor_fn,
-        leaf_check_fn,
-        cost_fn,
-        lower_bound_fn,
-        current_best_cost: None,
-    }
+    let container =
+        BranchAndBoundContainer::new(start, successor_fn, leaf_check_fn, cost_fn, lower_bound_fn);
+    Reachable::new(container)
 }
 
 /// Find the leaf node with the lowest cost by using Branch and Bound
@@ -115,7 +144,14 @@ where
     FC2: Fn(&N) -> Option<C>,
 {
     let mut res = bbs_reach(start, successor_fn, leaf_check_fn, cost_fn, lower_bound_fn);
-    find_best(&mut res, leaf_check_fn, cost_fn, max_ops, time_limit)
+    find_best(
+        &mut res,
+        leaf_check_fn,
+        cost_fn,
+        max_ops,
+        time_limit,
+        |_, _| {},
+    )
 }
 
 #[cfg(test)]
@@ -191,7 +227,7 @@ mod test {
             max_ops,
             time_limit,
         )
-        .unwrap();
+        .expect("BBS should find a valid solution");
         let cost = u32::MAX - cost;
 
         assert_eq!(cost, 120);

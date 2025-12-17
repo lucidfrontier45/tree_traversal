@@ -1,13 +1,14 @@
 # Task Completion Checklist
 
-When a task is completed (e.g., adding a new feature, fixing a bug, refactoring code):
+When a coding task is completed, run the following to ensure quality:
 
-1. **Run Tests**: Execute `cargo test` to ensure all tests pass.
-2. **Format Code**: Run `cargo fmt` to format the code according to Rust standards.
-3. **Lint Code**: Run `cargo clippy` to check for potential issues and improvements.
-4. **Build Project**: Run `cargo build` to ensure the project compiles without errors.
-5. **Update Documentation**: If public API changed, update docs and run `cargo doc`.
-6. **Commit Changes**: Use git to commit the changes with a descriptive message.
-7. **Push to Remote**: Push the changes to the repository.
+1. **Format Code**: `cargo fmt` to format the code.
+2. **Lint**: `cargo clippy` to check for linting issues.
+3. **Test**: `cargo test` to run all tests and ensure nothing is broken.
+4. **Build**: `cargo build` to verify compilation.
+5. **Documentation**: `cargo doc` to update docs if public APIs changed.
+6. **Examples**: Run relevant examples with `cargo run --example <name>` to verify functionality.
 
-This ensures code quality, correctness, and maintainability.
+Ensure all public items have documentation, as `#![forbid(missing_docs)]` is enforced.
+
+If adding new features, add corresponding tests and examples.

@@ -9,14 +9,13 @@ This crate implements several tree traversal algorithms to find the best (the lo
 - Beam Search
 - Branch and Bound Search
 - Greedy Search
+- Priority First Search
 
 # Using this crate
 
 ```bash
 cargo add tree_traversal
 ```
-
-
 
 # APIs
 
@@ -238,11 +237,12 @@ let root_node = Node {
     profits: Rc::new(profits),
 };
 
-let mut traversal = BranchAndBoundTraversal::new(root_node).fuse();
+let mut traversal = BranchAndBoundTraversal::new(root_node);
 let result = tree_traversal::traversal::find_best(
     &mut traversal,
     10000,
     std::time::Duration::from_secs(100),
+    |_, _| {},
 );
 if let Some((cost, node)) = result {
     println!("Best profit: {}", u32::MAX - cost);
