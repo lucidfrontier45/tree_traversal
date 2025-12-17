@@ -9,14 +9,13 @@ This crate implements several tree traversal algorithms to find the best (the lo
 - Beam Search
 - Branch and Bound Search
 - Greedy Search
+- Priority First Search
 
 # Using this crate
 
 ```bash
 cargo add tree_traversal
 ```
-
-
 
 # APIs
 
