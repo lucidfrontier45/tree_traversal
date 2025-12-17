@@ -45,21 +45,10 @@ where
     }
 
     fn expand_and_push(&mut self, node: &Self::Node) {
-        let mut best_successor: Option<(C, N)> = None;
-        for s in (self.successor_fn)(node) {
-            if let Some(score) = (self.eval_fn)(&s) {
-                match &best_successor {
-                    Some((best_score, _)) => {
-                        if score < *best_score {
-                            best_successor = Some((score, s));
-                        }
-                    }
-                    None => {
-                        best_successor = Some((score, s));
-                    }
-                }
-            }
-        }
+        let best_successor = (self.successor_fn)(node)
+            .into_iter()
+            .filter_map(|s| (self.eval_fn)(&s).map(|score| (score, s)))
+            .min_by_key(|(score, _)| *score);
 
         self.next_node = best_successor.map(|(_, n)| n);
     }
