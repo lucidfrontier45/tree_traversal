@@ -238,7 +238,7 @@ let root_node = Node {
     profits: Rc::new(profits),
 };
 
-let mut traversal = BranchAndBoundTraversal::new(root_node).fuse();
+let mut traversal = BranchAndBoundTraversal::new(root_node);
 let result = tree_traversal::traversal::find_best(
     &mut traversal,
     10000,

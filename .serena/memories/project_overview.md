@@ -4,7 +4,7 @@ This is a Rust library called `tree_traversal` for finding the optimal leaf node
 
 The library is designed for combinatorial optimization problems, such as the knapsack problem, where you need to find the best leaf in a decision tree.
 
-Tech stack: Rust 2021 edition, with dependency on `num-traits` for bounded types.
+Tech stack: Rust 2024 edition
 
 Repository: https://github.com/lucidfrontier45/tree_traversal
 

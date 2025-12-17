@@ -2,7 +2,69 @@
 
 use std::time::Duration;
 
-use super::{bbs::bbs_reach, common::find_best};
+use super::{
+    common::{NodeContainer, Reachable},
+    find_best,
+};
+
+/// A container for Depth-First traversal.
+pub struct DepthFirstContainer<N, FN> {
+    to_see: Vec<N>,
+    successor_fn: FN,
+}
+
+impl<N, FN, IN> DepthFirstContainer<N, FN>
+where
+    FN: FnMut(&N) -> IN,
+    IN: IntoIterator<Item = N>,
+{
+    /// Creates a new `DepthFirstContainer` with the given successor function.
+    pub fn new(start: N, successor_fn: FN) -> Self {
+        Self {
+            to_see: vec![start],
+            successor_fn,
+        }
+    }
+}
+
+impl<N, FN, IN> NodeContainer for DepthFirstContainer<N, FN>
+where
+    FN: FnMut(&N) -> IN,
+    IN: IntoIterator<Item = N>,
+{
+    type Node = N;
+
+    fn pop(&mut self) -> Option<Self::Node> {
+        self.to_see.pop()
+    }
+
+    fn expand_and_push(&mut self, node: &Self::Node) {
+        for s in (self.successor_fn)(node) {
+            self.to_see.push(s);
+        }
+    }
+}
+
+/// Creates a Depth-First Search traversal iterator starting from the given node.
+///
+/// This function initializes a lazy iterator that explores the tree by going as deep as possible
+/// along each branch before backtracking, yielding nodes in depth-first order.
+///
+/// # Parameters
+/// - `start`: The root node from which to begin the traversal.
+/// - `successor_fn`: A function that, given a node, returns an iterator over its successor nodes.
+///
+/// # Returns
+/// An iterator that yields nodes reachable from the start node in depth-first order.
+/// The iterator is lazy and will only compute successors as needed.
+pub fn dfs_reach<N, IN, FN>(start: N, successor_fn: FN) -> Reachable<DepthFirstContainer<N, FN>>
+where
+    IN: IntoIterator<Item = N>,
+    FN: FnMut(&N) -> IN,
+{
+    let container = DepthFirstContainer::new(start, successor_fn);
+    Reachable::new(container)
+}
 
 /// Find the leaf node with the lowest cost by using Depth First Search
 ///
@@ -29,13 +91,7 @@ where
     FL: Fn(&N) -> bool,
     FC: Fn(&N) -> Option<C>,
 {
-    let mut res = bbs_reach(
-        start,
-        successor_fn,
-        |_| false,
-        |_| None,
-        |_| Some(C::default()),
-    );
+    let mut res = dfs_reach(start, successor_fn);
     find_best(
         &mut res,
         leaf_check_fn,

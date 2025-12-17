@@ -2,7 +2,7 @@ use std::iter::FusedIterator;
 
 use crate::node::TreeNode;
 
-use super::functional::bms_reach;
+use super::functional::bfs_reach;
 
 /// Breadth-First traversal implementation.
 pub struct BreadthFirstTraversal<N> {
@@ -11,7 +11,7 @@ pub struct BreadthFirstTraversal<N> {
 
 impl<C, N> BreadthFirstTraversal<N>
 where
-    C: Default + Copy + Ord + 'static,
+    C: Copy + Ord + 'static,
     N: TreeNode<Cost = C> + 'static,
 {
     /// Creates a new `BreadthFirstTraversal` instance that performs a breadth-first search starting from the given root node.
@@ -24,13 +24,7 @@ where
     /// # Returns
     /// A new `BreadthFirstTraversal` iterator.
     pub fn new(root_node: N) -> Self {
-        let state = bms_reach(
-            root_node,
-            |n: &N| n.generate_child_nodes(),
-            |_: &N| Some(C::default()),
-            usize::MAX,
-            usize::MAX,
-        );
+        let state = bfs_reach(root_node, |n: &N| n.generate_child_nodes());
         Self {
             state: Box::new(state),
         }
@@ -44,3 +38,5 @@ impl<N> Iterator for BreadthFirstTraversal<N> {
         self.state.next()
     }
 }
+
+impl<N> FusedIterator for BreadthFirstTraversal<N> {}

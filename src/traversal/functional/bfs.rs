@@ -1,8 +1,72 @@
 //! Breadth First Search
 
-use std::time::Duration;
+use std::{collections::VecDeque, time::Duration};
 
-use super::bms::bms;
+use super::{
+    common::{NodeContainer, Reachable},
+    find_best,
+};
+
+/// A container for Breadth-First traversal.
+pub struct BreadthFirstContainer<N, FN> {
+    to_see: VecDeque<N>,
+    successor_fn: FN,
+}
+
+impl<N, FN, IN> BreadthFirstContainer<N, FN>
+where
+    FN: FnMut(&N) -> IN,
+    IN: IntoIterator<Item = N>,
+{
+    /// Creates a new `BreadthFirstContainer` with the given successor function.
+    pub fn new(start: N, successor_fn: FN) -> Self {
+        let mut to_see = VecDeque::new();
+        to_see.push_back(start);
+        Self {
+            to_see,
+            successor_fn,
+        }
+    }
+}
+
+impl<N, FN, IN> NodeContainer for BreadthFirstContainer<N, FN>
+where
+    FN: FnMut(&N) -> IN,
+    IN: IntoIterator<Item = N>,
+{
+    type Node = N;
+
+    fn pop(&mut self) -> Option<Self::Node> {
+        self.to_see.pop_front()
+    }
+
+    fn expand_and_push(&mut self, node: &Self::Node) {
+        for s in (self.successor_fn)(node) {
+            self.to_see.push_back(s);
+        }
+    }
+}
+
+/// Creates a Breadth-First Search traversal iterator starting from the given node.
+///
+/// This function initializes a lazy iterator that explores the tree level by level, yielding nodes
+/// in breadth-first order. This ensures that nodes closer to the root are visited before deeper nodes.
+///
+/// # Parameters
+/// - `start`: The root node from which to begin the traversal.
+/// - `successor_fn`: A function that, given a node, returns an iterator over its successor nodes.
+///
+/// # Returns
+/// An iterator that yields nodes reachable from the start node in breadth-first order.
+/// The iterator is lazy and will only compute successors as needed.
+pub fn bfs_reach<N, IN, FN>(start: N, successor_fn: FN) -> Reachable<BreadthFirstContainer<N, FN>>
+where
+    IN: IntoIterator<Item = N>,
+    FN: FnMut(&N) -> IN,
+{
+    let container = BreadthFirstContainer::new(start, successor_fn);
+    Reachable::new(container)
+}
 
 /// Find the leaf node with the lowest cost by using Breadth First Search
 ///
@@ -29,16 +93,14 @@ where
     C: Ord + Copy + Default,
     FR: Fn(&N) -> bool,
 {
-    bms(
-        start,
-        successor_fn,
+    let mut res = bfs_reach(start, successor_fn);
+    find_best(
+        &mut res,
         leaf_check_fn,
         cost_fn,
-        |_| Some(C::default()),
-        usize::MAX,
-        usize::MAX,
         max_ops,
         time_limit,
+        |_, _| {},
     )
 }
 

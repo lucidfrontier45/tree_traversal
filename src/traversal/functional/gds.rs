@@ -2,19 +2,88 @@
 
 use std::time::Duration;
 
-use super::bms::bms;
+use super::{
+    common::{NodeContainer, Reachable},
+    find_best,
+};
+
+/// A container for Greedy traversal.
+pub struct GreedyContainer<N, FN, FC> {
+    next_node: Option<N>,
+    successor_fn: FN,
+    eval_fn: FC,
+}
+
+impl<N, IN, FN, FC, C> GreedyContainer<N, FN, FC>
+where
+    FN: FnMut(&N) -> IN,
+    IN: IntoIterator<Item = N>,
+    FC: Fn(&N) -> Option<C>,
+    C: Ord + Copy,
+{
+    /// Creates a new `GreedyContainer` with the given parameters.
+    pub fn new(start: N, successor_fn: FN, eval_fn: FC) -> Self {
+        Self {
+            next_node: Some(start),
+            successor_fn,
+            eval_fn,
+        }
+    }
+}
+
+impl<N, IN, FN, FC, C> NodeContainer for GreedyContainer<N, FN, FC>
+where
+    FN: FnMut(&N) -> IN,
+    IN: IntoIterator<Item = N>,
+    FC: Fn(&N) -> Option<C>,
+    C: Ord + Copy,
+{
+    type Node = N;
+
+    fn pop(&mut self) -> Option<Self::Node> {
+        self.next_node.take()
+    }
+
+    fn expand_and_push(&mut self, node: &Self::Node) {
+        let best_successor = (self.successor_fn)(node)
+            .into_iter()
+            .filter_map(|s| (self.eval_fn)(&s).map(|score| (score, s)))
+            .min_by_key(|(score, _)| *score);
+
+        self.next_node = best_successor.map(|(_, n)| n);
+    }
+}
+
+/// Creates a Greedy Search traversal iterator starting from the given node.
+///
+/// This function initializes a lazy iterator that explores the tree by always selecting the
+/// successor with the best (lowest) evaluation score, yielding nodes in greedy order.
+///
+/// # Parameters
+/// - `start`: The root node from which to begin the traversal.
+/// - `successor_fn`: A function that, given a node, returns an iterator over its successor nodes.
+/// - `eval_fn`: A function that evaluates a node, returning `Some(score)` where lower scores
+///   are better, or `None` if the node cannot be evaluated.
+///
+/// # Returns
+/// An iterator that yields nodes reachable from the start node in greedy order.
+/// The iterator is lazy and will only compute successors as needed.
+pub fn gds_reach<N, IN, FN, FC, C>(
+    start: N,
+    successor_fn: FN,
+    eval_fn: FC,
+) -> Reachable<GreedyContainer<N, FN, FC>>
+where
+    FN: FnMut(&N) -> IN,
+    IN: IntoIterator<Item = N>,
+    FC: Fn(&N) -> Option<C>,
+    C: Ord + Copy,
+{
+    let container = GreedyContainer::new(start, successor_fn, eval_fn);
+    Reachable::new(container)
+}
 
 /// Find the leaf node with the lowest cost by using Greedy Search
-///
-/// - `start` is the start node.
-/// - `successor_fn` returns a list of successors for a given node.
-/// - `leaf_check_fn` checks if a node is a leaf or not
-/// - `cost_fn` returns the final cost of a leaf node
-/// - `eval_fn` returns the approximated cost of a given node to sort and select k-best
-/// - `max_ops` is the maximum number of search operations to perform
-/// - `time_limit` is the maximum duration allowed for the search operation
-///
-/// This function returns Some of a tuple of (cost, leaf node) if found, otherwise returns None
 pub fn gds<N, IN, FN, FC1, FC2, C, FR>(
     start: N,
     successor_fn: FN,
@@ -32,16 +101,14 @@ where
     C: Ord + Copy,
     FR: Fn(&N) -> bool,
 {
-    bms(
-        start,
-        successor_fn,
+    let mut res = gds_reach(start, successor_fn, eval_fn);
+    find_best(
+        &mut res,
         leaf_check_fn,
         cost_fn,
-        eval_fn,
-        usize::MAX,
-        1,
         max_ops,
         time_limit,
+        |_, _| {},
     )
 }
 

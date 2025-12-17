@@ -104,7 +104,7 @@ fn main() {
 
     let null_callback = |_: usize, _: &Node| {};
 
-    let mut traversal = BranchAndBoundTraversal::new(root_node).fuse();
+    let mut traversal = BranchAndBoundTraversal::new(root_node);
     let result = tree_traversal::traversal::find_best(
         &mut traversal,
         10000,

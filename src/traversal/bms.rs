@@ -47,3 +47,5 @@ impl<N> Iterator for BeamTraversal<N> {
         self.state.next()
     }
 }
+
+impl<N> FusedIterator for BeamTraversal<N> {}
