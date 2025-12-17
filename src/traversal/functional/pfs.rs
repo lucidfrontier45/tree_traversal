@@ -204,7 +204,7 @@ mod test {
             max_ops,
             time_limit,
         )
-        .unwrap();
+        .expect("PFS should find a valid solution");
         let cost = u32::MAX - cost;
 
         assert_eq!(cost, 6);

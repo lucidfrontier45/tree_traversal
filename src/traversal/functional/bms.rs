@@ -58,7 +58,9 @@ where
         if self.to_see.is_empty() {
             let max_iter = std::cmp::min(self.pool.len(), self.beam_width);
             for _ in 0..max_iter {
-                self.to_see.push_back(self.pool.pop().unwrap().into_item());
+                if let Some(node) = self.pool.pop() {
+                    self.to_see.push_back(node.into_item());
+                }
             }
             self.pool.clear();
         }
@@ -205,7 +207,7 @@ mod test {
                     .copied()
                     .enumerate()
                     .find(|&(_, c)| c == city)
-                    .unwrap()
+                    .expect("City should exist in children")
                     .0;
                 _children.remove(i);
                 _children
@@ -253,7 +255,7 @@ mod test {
                 .map(|c| (time_func(prev_city, *c), *c))
                 .enumerate()
                 .min_by_key(|x| x.1.0)
-                .unwrap();
+                .expect("Children should not be empty");
 
             cities.remove(i);
             route.push(next_city);
@@ -319,7 +321,7 @@ mod test {
             let (remained_duration, route) =
                 greedy_tsp_solver(n.city, n.children.clone(), &time_func);
             Some(Reverse(
-                n.t + remained_duration + time_func(*route.last().unwrap(), start),
+                n.t + remained_duration + time_func(*route.last().expect("Route should not be empty"), start),
             ))
         };
 
@@ -342,7 +344,7 @@ mod test {
             max_ops,
             time_limit,
         )
-        .unwrap();
+        .expect("BMS should find a valid solution");
 
         assert!(cost < 8000);
         let mut visited_cities = best_node.parents.clone();

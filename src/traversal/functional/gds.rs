@@ -159,7 +159,7 @@ mod test {
                     .copied()
                     .enumerate()
                     .find(|&(_, c)| c == city)
-                    .unwrap()
+                    .expect("City should exist in children")
                     .0;
                 _children.remove(i);
                 _children
@@ -260,7 +260,7 @@ mod test {
             max_ops,
             time_limit,
         )
-        .unwrap();
+        .expect("GDS should find a valid solution");
 
         assert!(cost < 9000);
         let mut visited_cities = best_node.parents.clone();

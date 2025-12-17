@@ -68,7 +68,7 @@ fn main() {
         max_ops,
         time_limit,
     )
-    .unwrap();
+    .expect("BBS should find a valid knapsack solution");
     let cost = u32::MAX - cost;
 
     dbg!((best_node, cost));
