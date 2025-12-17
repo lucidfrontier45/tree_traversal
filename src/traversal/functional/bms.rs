@@ -1,44 +1,43 @@
 //! Beam Search
 
 use std::{
-    cmp::Reverse,
     collections::{BinaryHeap, VecDeque},
     time::Duration,
 };
 
 use crate::utils::ScoredItem;
 
-use super::common::{find_best, NodeContainer, Reachable};
+use super::common::{NodeContainer, Reachable, find_best};
 
 /// A container for Beam Search traversal.
-pub struct BeamContainer<N, FN, FC, C: Ord> {
+pub struct BeamContainer<N, FN, FP, P: Ord> {
     to_see: VecDeque<N>,
     successor_fn: FN,
-    eval_fn: FC,
+    priority_fn: FP,
     branch_factor: usize,
     beam_width: usize,
-    pool: BinaryHeap<ScoredItem<Reverse<C>, N>>,
+    pool: BinaryHeap<ScoredItem<P, N>>,
 }
 
-impl<N, IN, FN, FC, C> BeamContainer<N, FN, FC, C>
+impl<N, IN, FN, FP, P> BeamContainer<N, FN, FP, P>
 where
     FN: FnMut(&N) -> IN,
     IN: IntoIterator<Item = N>,
-    FC: Fn(&N) -> Option<C>,
-    C: Ord + Copy,
+    FP: Fn(&N) -> Option<P>,
+    P: Ord + Copy,
 {
     /// Creates a new `BeamContainer` with the given parameters.
     pub fn new(
         start: N,
         successor_fn: FN,
-        eval_fn: FC,
+        priority_fn: FP,
         branch_factor: usize,
         beam_width: usize,
     ) -> Self {
         Self {
             to_see: vec![start].into(),
             successor_fn,
-            eval_fn,
+            priority_fn,
             branch_factor,
             beam_width,
             pool: BinaryHeap::new(),
@@ -46,12 +45,12 @@ where
     }
 }
 
-impl<N, IN, FN, FC, C> NodeContainer for BeamContainer<N, FN, FC, C>
+impl<N, IN, FN, FP, P> NodeContainer for BeamContainer<N, FN, FP, P>
 where
     FN: FnMut(&N) -> IN,
     IN: IntoIterator<Item = N>,
-    FC: Fn(&N) -> Option<C>,
-    C: Ord + Copy,
+    FP: Fn(&N) -> Option<P>,
+    P: Ord + Copy,
 {
     type Node = N;
 
@@ -70,11 +69,11 @@ where
         let mut successors: Vec<_> = (self.successor_fn)(node)
             .into_iter()
             .filter_map(|n| {
-                let cost = (self.eval_fn)(&n)?;
-                Some((Reverse(cost), n))
+                let priority = (self.priority_fn)(&n)?;
+                Some((priority, n))
             })
             .collect();
-        successors.sort_unstable_by_key(|x| x.0);
+        successors.sort_by(|a, b| b.0.cmp(&a.0));
         successors
             .into_iter()
             .take(self.branch_factor)
@@ -91,28 +90,28 @@ where
 /// # Parameters
 /// - `start`: The root node from which to begin the traversal.
 /// - `successor_fn`: A function that, given a node, returns an iterator over its successor nodes.
-/// - `eval_fn`: A function that evaluates a node for selection, returning `Some(score)` where lower
-///   scores are better, or `None` if the node cannot be evaluated.
+/// - `priority_fn`: A function that evaluates a node for selection, returning `Some(priority)` where higher
+///   priorities are better, or `None` if the node cannot be evaluated.
 /// - `branch_factor`: The maximum number of successors to consider from each node.
 /// - `beam_width`: The maximum number of nodes to keep at each depth level.
 ///
 /// # Returns
 /// An iterator that yields nodes reachable from the start node in beam search order.
 /// The iterator is lazy and will only compute successors as needed.
-pub fn bms_reach<N, IN, FN, FC, C>(
+pub fn bms_reach<N, IN, FN, FP, P>(
     start: N,
     successor_fn: FN,
-    eval_fn: FC,
+    priority_fn: FP,
     branch_factor: usize,
     beam_width: usize,
-) -> Reachable<BeamContainer<N, FN, FC, C>>
+) -> Reachable<BeamContainer<N, FN, FP, P>>
 where
     FN: FnMut(&N) -> IN,
     IN: IntoIterator<Item = N>,
-    FC: Fn(&N) -> Option<C>,
-    C: Ord + Copy,
+    FP: Fn(&N) -> Option<P>,
+    P: Ord + Copy,
 {
-    let container = BeamContainer::new(start, successor_fn, eval_fn, branch_factor, beam_width);
+    let container = BeamContainer::new(start, successor_fn, priority_fn, branch_factor, beam_width);
     Reachable::new(container)
 }
 
@@ -122,7 +121,7 @@ where
 /// - `successor_fn` returns a list of successors for a given node.
 /// - `leaf_check_fn` checks if a node is a leaf or not
 /// - `cost_fn` returns the final cost of a leaf node
-/// - `eval_fn` returns the approximated cost of a given node to sort and select k-best
+/// - `priority_fn` returns the priority of a given node to sort and select k-best
 /// - `branch_factor` decides maximum number of branches from a node
 /// - `beam_width` decides maximum number of nodes at each depth.
 /// - `max_ops` sets the maximum number of search operations to perform.
@@ -130,12 +129,12 @@ where
 ///
 /// This function returns Some of a tuple of (cost, leaf node) if found, otherwise returns None
 #[allow(clippy::too_many_arguments)]
-pub fn bms<N, IN, FN, FC1, FC2, C, FR>(
+pub fn bms<N, IN, FN, FC, FP, C, P, FR>(
     start: N,
     successor_fn: FN,
     leaf_check_fn: FR,
-    cost_fn: FC2,
-    eval_fn: FC1,
+    cost_fn: FC,
+    priority_fn: FP,
     branch_factor: usize,
     beam_width: usize,
     max_ops: usize,
@@ -144,12 +143,13 @@ pub fn bms<N, IN, FN, FC1, FC2, C, FR>(
 where
     IN: IntoIterator<Item = N>,
     FN: FnMut(&N) -> IN,
-    FC1: Fn(&N) -> Option<C>,
-    FC2: Fn(&N) -> Option<C>,
+    FC: Fn(&N) -> Option<C>,
+    FP: Fn(&N) -> Option<P>,
     C: Ord + Copy,
+    P: Ord + Copy,
     FR: Fn(&N) -> bool,
 {
-    let mut res = bms_reach(start, successor_fn, eval_fn, branch_factor, beam_width);
+    let mut res = bms_reach(start, successor_fn, priority_fn, branch_factor, beam_width);
     find_best(
         &mut res,
         leaf_check_fn,
@@ -162,6 +162,8 @@ where
 
 #[cfg(test)]
 mod test {
+    use std::cmp::Reverse;
+
     use super::bms;
 
     type CityId = usize;
@@ -250,7 +252,7 @@ mod test {
                 .iter()
                 .map(|c| (time_func(prev_city, *c), *c))
                 .enumerate()
-                .min_by_key(|x| x.1 .0)
+                .min_by_key(|x| x.1.0)
                 .unwrap();
 
             cities.remove(i);
@@ -313,10 +315,12 @@ mod test {
         let time_func = |p: CityId, c: CityId| distance_matrix[p][c];
 
         let successor_fn = |n: &Node| n.generate_child_nodes(&time_func);
-        let eval_fn = |n: &Node| {
+        let priority_fn = |n: &Node| {
             let (remained_duration, route) =
                 greedy_tsp_solver(n.city, n.children.clone(), &time_func);
-            Some(n.t + remained_duration + time_func(*route.last().unwrap(), start))
+            Some(Reverse(
+                n.t + remained_duration + time_func(*route.last().unwrap(), start),
+            ))
         };
 
         let branch_factor = 10;
@@ -332,7 +336,7 @@ mod test {
             successor_fn,
             leaf_check_fn,
             cost_fn,
-            eval_fn,
+            priority_fn,
             branch_factor,
             beam_width,
             max_ops,
