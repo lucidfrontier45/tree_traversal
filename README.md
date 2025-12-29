@@ -1,4 +1,6 @@
-# tree_traversal
+![Logo](logo_wide.png)
+
+
 A Rust library for finding the optimal leaf node in a tree structure.
 This crate implements several tree traversal algorithms to find the best (the lowest cost) leaf node in a tree.
 
