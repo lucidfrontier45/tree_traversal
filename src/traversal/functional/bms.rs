@@ -321,7 +321,8 @@ mod test {
             let (remained_duration, route) =
                 greedy_tsp_solver(n.city, n.children.clone(), &time_func);
             Some(Reverse(
-                n.t + remained_duration + time_func(*route.last().expect("Route should not be empty"), start),
+                n.t + remained_duration
+                    + time_func(*route.last().expect("Route should not be empty"), start),
             ))
         };
 
